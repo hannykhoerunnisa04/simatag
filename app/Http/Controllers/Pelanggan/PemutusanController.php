@@ -18,20 +18,23 @@ class PemutusanController extends Controller
         // 1. Dapatkan pengguna yang sedang login
         $user = Auth::user();
 
-        // 2. Cari data pelanggan yang terhubung
+        // 2. Cari data pelanggan yang terhubung dengan pengguna tersebut
+        // Pastikan relasi antara Pengguna dan Pelanggan sudah benar
         $pelanggan = Pelanggan::where('id_pengguna', $user->id_pengguna)->first();
         
-        // 3. Inisialisasi variabel pemutusan
+        // 3. Inisialisasi variabel pemutusan sebagai null
         $pemutusan = null;
         
-        // 4. Jika pelanggan ditemukan, cari data pemutusan yang relevan
+        // 4. Jika data pelanggan ditemukan, cari data pemutusan yang relevan
         if ($pelanggan) {
-            $pemutusan = Pemutusan::with('pelanggan')
+            // Ambil data pemutusan yang id_pelanggan-nya cocok dan statusnya BUKAN 'selesai'
+            $pemutusan = Pemutusan::with('pelanggan') // Eager load relasi untuk data paket
                                 ->where('id_pelanggan', $pelanggan->id_pelanggan)
-                                ->first(); // Ambil hanya satu record pemutusan yang aktif
+                                ->where('status_pemutusan', '!=', 'selesai')
+                                ->first(); // Ambil hanya satu record pemutusan yang aktif/berjalan
         }
 
-        // 5. Kirim data ke view
+        // 5. Kirim data (baik itu data pemutusan atau null) ke view
         return view('rolepelanggan.pemutusan.index', compact('pemutusan'));
     }
 }

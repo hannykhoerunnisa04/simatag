@@ -12,7 +12,6 @@
 </head>
 
 <body class="flex bg-gray-100 font-sans">
-    {{-- Memanggil komponen sidebar untuk pelanggan --}}
     @include('components.sidebar.pelanggan-sidebar')
 
     <!-- Konten Utama -->
@@ -28,33 +27,33 @@
         </header>
 
         <!-- Notifikasi Status Pemutusan -->
-        @if(isset($statusPemutusan) && $statusPemutusan !== 'Tidak Ada')
-            <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 rounded-r-lg shadow-md">
+        @if($pemutusan)
+            <div class="mb-6 p-4 bg-orange-100 border-l-4 border-orange-500 rounded-r-lg shadow-md">
                 <div class="flex">
-                    <div class="py-1"><i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i></div>
+                    <div class="py-1"><i class="fas fa-exclamation-triangle text-orange-500 mr-3"></i></div>
                     <div>
-                        <p class="font-bold text-yellow-800">Pemutusan Layanan: {{ $statusPemutusan }}</p>
-                        <p class="text-sm text-gray-600 mt-1">Layanan Anda saat ini dalam status pemutusan. Silakan hubungi admin untuk informasi lebih lanjut.</p>
+                        <p class="font-bold text-orange-800">Pemutusan Layanan: {{ ucfirst($pemutusan->status_pemutusan) }}</p>
                     </div>
                 </div>
             </div>
         @endif
 
         <div class="bg-white shadow-xl rounded-lg overflow-x-auto">
-            <h2 class="text-xl font-semibold p-4 border-b">Riwayat Pemutusan Layanan</h2>
+             <h2 class="text-xl font-semibold p-4 border-b">Riwayat Pemutusan Layanan</h2>
             <table class="min-w-full table-auto text-sm">
                 <thead class="bg-gradient-to-r from-blue-600 to-blue-700 text-white text-left">
                     <tr>
-                        <th class="p-3 font-semibold uppercase tracking-wider">ID Paket Layanan</th>
-                        <th class="p-3 font-semibold uppercase tracking-wider">Alasan Pemutusan</th>
-                        <th class="p-3 font-semibold uppercase tracking-wider text-center">Status Pemutusan</th>
+                        <th class="p-3 font-semibold uppercase">ID Paket Layanan</th>
+                        <th class="p-3 font-semibold uppercase">Alasan Pemutusan</th>
+                        <th class="p-3 font-semibold uppercase text-center">Status Pemutusan</th>
                     </tr>
                 </thead>
                 <tbody class="text-gray-700 divide-y divide-gray-200">
-                    @forelse ($riwayatPemutusan ?? [] as $pemutusan)
+                    {{-- Diperbaiki: Logika untuk menampilkan data atau pesan "tidak ada" --}}
+                    @if ($pemutusan)
                         <tr class="hover:bg-gray-50">
                             <td class="p-3 font-medium">{{ $pemutusan->pelanggan->id_paket ?? 'N/A' }}</td>
-                            <td class="p-3 max-w-lg truncate" title="{{ $pemutusan->alasan_pemutusan }}">{{ $pemutusan->alasan_pemutusan ?: '-' }}</td>
+                            <td class="p-3">{{ $pemutusan->alasan_pemutusan ?: 'Tidak ada alasan spesifik.' }}</td>
                             <td class="p-3 text-center">
                                 @if(strtolower($pemutusan->status_pemutusan) == 'permanen')
                                     <span class="px-2 py-1 text-xs font-bold leading-tight rounded-full bg-red-100 text-red-700 uppercase">{{ $pemutusan->status_pemutusan }}</span>
@@ -65,14 +64,14 @@
                                 @endif
                             </td>
                         </tr>
-                    @empty
+                    @else
                         <tr>
                             <td colspan="3" class="text-center p-10 text-gray-500">
                                 <i class="fas fa-check-circle text-4xl text-green-500 mb-3"></i>
-                                <p class="font-semibold">Tidak ada riwayat pemutusan layanan.</p>
+                                <p class="font-semibold">Tidak ada informasi pemutusan layanan untuk Anda.</p>
                             </td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>
