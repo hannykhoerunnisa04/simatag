@@ -40,10 +40,8 @@
             <form action="{{ route('pelanggan.uploadbukti.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="space-y-6 max-w-lg mx-auto">
-                    <div>
-                        <label for="Id_pembayaran" class="block mb-2 text-sm font-medium text-gray-900">ID Pembayaran</label>
-                        <input type="text" name="Id_pembayaran" value="{{ old('Id_pembayaran') }}" class="w-full bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5" required placeholder="Masukkan ID unik pembayaran">
-                    </div>
+                    {{-- Dihapus: Input untuk ID Pembayaran manual dihilangkan --}}
+
                     <div>
                         <label for="Id_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Pilih Tagihan yang Dibayar</label>
                         <select name="Id_tagihan" class="w-full bg-gray-50 border @error('Id_tagihan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg p-2.5" required>
@@ -56,6 +54,9 @@
                                 <option value="" disabled>Tidak ada tagihan yang perlu dibayar</option>
                             @endforelse
                         </select>
+                        @error('Id_tagihan')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label for="metode_bayar" class="block mb-2 text-sm font-medium text-gray-900">Metode Pembayaran</label>
@@ -63,15 +64,16 @@
                             <option value="Transfer Bank" {{ old('metode_bayar') == 'Transfer Bank' ? 'selected' : '' }}>Transfer Bank</option>
                             <option value="Dompet Digital" {{ old('metode_bayar') == 'Dompet Digital' ? 'selected' : '' }}>Dompet Digital</option>
                         </select>
+                        @error('metode_bayar')
+                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
                     </div>
                     <div>
                         <label for="file_bukti" class="block mb-2 text-sm font-medium text-gray-900">File Bukti</label>
-                        {{-- Ditambahkan: onchange="previewImage()" --}}
                         <input type="file" name="file_bukti" id="file_bukti" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 @error('file_bukti') border-red-500 @enderror" required onchange="previewImage()">
                         <p class="mt-1 text-xs text-gray-500">Tipe file: JPG, PNG, PDF. Maks: 2MB.</p>
                     </div>
                     
-                    {{-- Ditambahkan: Area Pratinjau Gambar --}}
                     <div id="image-preview-container" class="mt-4 hidden">
                         <label class="block mb-2 text-sm font-medium text-gray-900">Pratinjau File:</label>
                         <img id="image-preview" src="" alt="Pratinjau Bukti" class="max-w-xs rounded-lg border shadow">
@@ -90,30 +92,21 @@
         </div>
     </main>
 
-    {{-- Ditambahkan: Skrip JavaScript untuk Pratinjau --}}
     <script>
         function previewImage() {
             const fileInput = document.getElementById('file_bukti');
             const previewContainer = document.getElementById('image-preview-container');
             const previewImage = document.getElementById('image-preview');
-
-            // Pastikan ada file yang dipilih
             if (fileInput.files && fileInput.files[0]) {
                 const reader = new FileReader();
-
                 reader.onload = function(e) {
-                    // Tampilkan gambar di elemen pratinjau
-                    previewImage.setAttribute('src', e.target.result);
-                    // Tampilkan kontainer pratinjau
-                    previewContainer.style.display = 'block';
+                    previewImage.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
                 };
-
-                // Baca file sebagai URL data
                 reader.readAsDataURL(fileInput.files[0]);
             } else {
-                // Sembunyikan pratinjau jika tidak ada file dipilih
-                previewContainer.style.display = 'none';
-                previewImage.setAttribute('src', '');
+                previewContainer.classList.add('hidden');
+                previewImage.src = '';
             }
         }
     </script>

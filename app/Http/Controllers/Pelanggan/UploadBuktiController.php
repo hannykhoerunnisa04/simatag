@@ -39,27 +39,28 @@ class UploadBuktiController extends Controller
     }
     
     public function store(Request $request)
-    {
-        $request->validate([
-            'Id_pembayaran' => 'required|string|max:40|unique:pembayaran,Id_pembayaran',
-            'Id_tagihan' => 'required|exists:tagihan,id_tagihan',
-            'metode_bayar' => 'required|string|max:50',
-            'file_bukti' => 'required|image|mimes:jpeg,png,jpg,pdf|max:2048',
-        ]);
+{
+    // Dihapus: Validasi untuk 'Id_pembayaran' dihilangkan
+    $request->validate([
+        'Id_tagihan' => 'required|exists:tagihan,id_tagihan',
+        'metode_bayar' => 'required|string|max:50',
+        'file_bukti' => 'required|image|mimes:jpeg,png,jpg,pdf|max:2048',
+    ]);
 
-        $filePath = $request->file('file_bukti')->store('bukti_pembayaran', 'public');
+    $filePath = $request->file('file_bukti')->store('bukti_pembayaran', 'public');
 
-        Pembayaran::create([
-            'Id_pembayaran' => $request->Id_pembayaran,
-            'Id_tagihan' => $request->Id_tagihan,
-            'tgl_bayar' => now(),
-            'metode_bayar' => $request->metode_bayar,
-            'file_bukti' => $filePath,
-            'status_validasi' => 'pending',
-        ]);
-        
-        return redirect()->route('pelanggan.uploadbukti.index')->with('success', 'Bukti pembayaran berhasil diunggah!');
-    }
+    // Dihapus: 'Id_pembayaran' dihilangkan dari array create()
+    // karena akan diisi otomatis oleh Model
+    Pembayaran::create([
+        'Id_tagihan' => $request->Id_tagihan,
+        'tgl_bayar' => now(),
+        'metode_bayar' => $request->metode_bayar,
+        'file_bukti' => $filePath,
+        'status_validasi' => 'pending',
+    ]);
+    
+    return redirect()->route('pelanggan.uploadbukti.index')->with('success', 'Bukti pembayaran berhasil diunggah!');
+}
 
     /**
      * PERBAIKAN: Mengambil data pembayaran secara manual berdasarkan ID.

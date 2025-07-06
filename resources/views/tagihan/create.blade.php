@@ -18,10 +18,6 @@
         <h1 class="text-3xl md:text-4xl font-bold text-gray-800">
             Tambah Tagihan Baru
         </h1>
-        <div class="flex items-center gap-3">
-            <i class="fas fa-user-circle text-2xl md:text-3xl text-blue-600"></i>
-            <span class="text-gray-700 text-sm md:text-base">Admin</span>
-        </div>
     </header>
 
     <div class="bg-white shadow-xl rounded-lg p-6 md:p-8">
@@ -40,30 +36,26 @@
         @csrf
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           
-          {{-- Kolom Kiri --}}
           <div class="space-y-6">
-            {{-- Input ID Tagihan Manual --}}
             <div>
               <label for="id_tagihan" class="block mb-2 text-sm font-medium text-gray-900">ID Tagihan</label>
               <input type="text" id="id_tagihan" name="id_tagihan" value="{{ old('id_tagihan') }}" class="bg-gray-50 border @error('id_tagihan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Contoh: TGH-001" required>
-              @error('id_tagihan')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-              @enderror
             </div>
-
+            
             <div>
               <label for="id_pelanggan" class="block mb-2 text-sm font-medium text-gray-900">Pilih Pelanggan</label>
-              <select id="id_pelanggan" name="id_pelanggan" onchange="updateNamaField()" class="bg-gray-50 border @error('id_pelanggan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                  <option value="" data-nama="" disabled selected>-- Pilih Pelanggan --</option>
+              {{-- Diperbaiki: Menambahkan onchange event untuk memanggil fungsi JS --}}
+              <select id="id_pelanggan" name="id_pelanggan" onchange="updateHargaTagihan()" class="bg-gray-50 border @error('id_pelanggan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                  <option value="" data-harga="0" disabled selected>-- Pilih Pelanggan --</option>
                   @foreach($pelanggans as $pelanggan)
-                      <option value="{{ $pelanggan->id_pelanggan }}" data-nama="{{ $pelanggan->nama_pelanggan }}" {{ old('id_pelanggan') == $pelanggan->id_pelanggan ? 'selected' : '' }}>
-                          {{ $pelanggan->id_pelanggan }} - {{ $pelanggan->nama_pelanggan }}
+                      {{-- Diperbaiki: Menambahkan atribut data-harga --}}
+                      <option value="{{ $pelanggan->id_pelanggan }}" 
+                              data-harga="{{ $pelanggan->paket->harga ?? 0 }}" 
+                              {{ old('id_pelanggan') == $pelanggan->id_pelanggan ? 'selected' : '' }}>
+                          {{ $pelanggan->nama_pelanggan }} (ID: {{ $pelanggan->id_pelanggan }})
                       </option>
                   @endforeach
               </select>
-              @error('id_pelanggan')
-                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-              @enderror
             </div>
 
             <div>
@@ -80,7 +72,7 @@
                 <div class="w-1/2">
                     <select name="periode_tahun" class="bg-gray-50 border @error('periode_tahun') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                         <option value="" disabled selected>-- Pilih Tahun --</option>
-                        @for ($i = date('Y') + 1; $i >= date('Y') - 5; $i--)
+                        @for ($i = date('Y'); $i <= date('Y') + 2; $i++)
                             <option value="{{ $i }}" {{ old('periode_tahun', date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
                     </select>
@@ -89,17 +81,16 @@
             </div>
           </div>
 
-          {{-- Kolom Kanan --}}
           <div class="space-y-6">
             <div>
                 <label for="jumlah_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Jumlah Tagihan (Rp)</label>
-                <input type="number" id="jumlah_tagihan" name="jumlah_tagihan" value="{{ old('jumlah_tagihan') }}" class="bg-gray-50 border @error('jumlah_tagihan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Contoh: 150000" required>
+                {{-- Diperbaiki: Dibuat readonly dan ditambahkan ID untuk JS --}}
+                <input type="number" id="jumlah_tagihan" name="jumlah_tagihan" value="{{ old('jumlah_tagihan') }}" class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Pilih pelanggan untuk melihat harga" required readonly>
             </div>
             <div>
               <label for="tgl_jatuh_tempo" class="block mb-2 text-sm font-medium text-gray-900">Tanggal Jatuh Tempo</label>
               <input type="date" id="tgl_jatuh_tempo" name="tgl_jatuh_tempo" value="{{ old('tgl_jatuh_tempo') }}" class="bg-gray-50 border @error('tgl_jatuh_tempo') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             </div>
-
             <div>
               <label for="status_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Status Tagihan</label>
               <select id="status_tagihan" name="status_tagihan" class="bg-gray-50 border @error('status_tagihan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
@@ -112,7 +103,7 @@
         </div>
 
         <div class="mt-8 flex justify-end gap-4">
-          <a href="{{ route('admin.tagihan.index') }}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700">
+          <a href="{{ route('admin.tagihan.index') }}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100">
             Batal
           </a>
           <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">
@@ -122,5 +113,30 @@
       </form>
     </div>
   </main>
+  
+  {{-- Skrip JavaScript untuk mengisi harga otomatis --}}
+  <script>
+    function updateHargaTagihan() {
+      // Ambil elemen dropdown dan input jumlah tagihan
+      const selectPelanggan = document.getElementById('id_pelanggan');
+      const jumlahTagihanInput = document.getElementById('jumlah_tagihan');
+      
+      // Ambil option yang sedang dipilih
+      const selectedOption = selectPelanggan.options[selectPelanggan.selectedIndex];
+      
+      // Ambil harga dari atribut data-harga
+      const harga = selectedOption.getAttribute('data-harga');
+      
+      // Set nilai input jumlah tagihan
+      jumlahTagihanInput.value = harga || '';
+    }
+
+    // Panggil fungsi sekali saat halaman dimuat untuk mengisi jika ada data lama (old)
+    document.addEventListener('DOMContentLoaded', function() {
+      if (document.getElementById('id_pelanggan').value) {
+        updateHargaTagihan();
+      }
+    });
+  </script>
 </body>
 </html>

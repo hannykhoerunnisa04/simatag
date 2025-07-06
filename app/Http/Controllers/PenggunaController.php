@@ -40,7 +40,6 @@ class PenggunaController extends Controller
      */
     public function store(Request $request)
     {
-        // Diperbaiki: Validasi sekarang memeriksa input 'name', bukan 'nama'
         $request->validate([
             'id_pengguna' => ['required', 'string', 'max:40', 'unique:pengguna,id_pengguna'],
             'name' => ['required', 'string', 'max:255'],
@@ -49,10 +48,9 @@ class PenggunaController extends Controller
             'role' => ['required', Rule::in(['admin', 'pelanggan', 'atasan'])],
         ]);
 
-        // Diperbaiki: Mengambil data dari 'name' dan menyimpannya ke kolom 'nama'
         Pengguna::create([
             'id_pengguna' => $request->id_pengguna,
-            'nama' => $request->name, // Menggunakan $request->name
+            'nama' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role' => $request->role,
@@ -74,14 +72,12 @@ class PenggunaController extends Controller
      */
     public function update(Request $request, Pengguna $pengguna)
     {
-        // Diperbaiki: Validasi memeriksa 'nama' dari form edit
         $request->validate([
             'nama' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:100', Rule::unique('pengguna')->ignore($pengguna->id_pengguna, 'id_pengguna')],
             'role' => ['required', Rule::in(['admin', 'pelanggan', 'atasan'])],
         ]);
 
-        // Diperbaiki: Menyimpan data ke kolom 'nama'
         $pengguna->update([
             'nama' => $request->nama,
             'email' => $request->email,
@@ -106,17 +102,17 @@ class PenggunaController extends Controller
     }
     
     /**
-     * Mereset password untuk pengguna yang spesifik.
+     * ✅ Mereset password ke default ('password123')
      */
-    public function resetPassword(Request $request, Pengguna $pengguna)
+    public function resetPassword(Pengguna $pengguna)
     {
-        $request->validate([
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        if (Auth::id() === $pengguna->id_pengguna) {
+            return back()->with('error', 'Anda tidak dapat mereset password akun Anda sendiri.');
+        }
 
-        $pengguna->password = Hash::make($request->password);
+        $pengguna->password = Hash::make('password123');
         $pengguna->save();
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Password untuk pengguna ' . $pengguna->nama . ' berhasil direset.');
+        return redirect()->route('admin.pengguna.index')->with('success', 'Password untuk pengguna ' . $pengguna->nama . ' berhasil direset ke default.');
     }
 }

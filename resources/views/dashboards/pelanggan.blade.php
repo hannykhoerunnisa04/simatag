@@ -6,10 +6,8 @@
     <title>Dashboard Pelanggan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <style> 
-        body { background-color: #f0f4f8; } 
-        .stat-card { transition: all 0.3s ease; }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    <style>
+        body { background-color: #f0f4f8; }
     </style>
 </head>
 
@@ -20,8 +18,8 @@
     <!-- Konten Utama -->
     <main class="md:ml-64 flex-1 p-6 md:p-8 lg:p-10 w-full">
         <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 pb-4">
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard - 
-                <span class="text-blue-500">Sistem Informasi Manajemen Tagihan (SIMA-TAG)</span>
+            <h1 class="text-2xl font-bold text-gray-800">
+                Dashboard - <span class="text-blue-500">Sistem Informasi Manajemen Tagihan (SIMA-TAG)</span>
             </h1>
             <div class="flex items-center gap-3 mt-4 sm:mt-0">
                 <i class="fas fa-user-circle text-2xl text-blue-600"></i>
@@ -31,30 +29,24 @@
 
         <!-- Kartu Statistik -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="stat-card bg-sky-400 text-white p-4 rounded-lg shadow-lg flex flex-col justify-center text-center">
-                <p class="font-semibold text-sm uppercase">Tagihan Bulan Ini</p>
-                <p class="text-2xl font-bold mt-1">Rp {{ number_format($tagihanBulanIni ?? 0, 0, ',', '.') }}</p>
+            <div class="bg-sky-400 text-white p-4 rounded-lg shadow-lg flex flex-col justify-between">
+                <p class="font-semibold uppercase text-sm">Tagihan Bulan Ini</p>
+                <p class="text-3xl font-bold text-right">Rp {{ number_format($tagihanBulanIni ?? 0, 0, ',', '.') }}</p>
             </div>
-            <div class="stat-card bg-green-500 text-white p-4 rounded-lg shadow-lg flex flex-col justify-center text-center">
-                 <div>
-                    <p class="font-semibold text-sm uppercase">Status Tagihan</p>
-                    <p class="text-2xl font-bold mt-1">{{ $statusTagihan ?? 'Lunas' }}</p>
-                </div>
+            <div class="bg-green-500 text-white p-4 rounded-lg shadow-lg flex flex-col justify-between">
+                <p class="font-semibold uppercase text-sm">Status Tagihan</p>
+                <p class="text-3xl font-bold text-right">{{ $statusTagihan ?? 'Lunas' }}</p>
             </div>
-            <div class="stat-card bg-red-500 text-white p-4 rounded-lg shadow-lg flex flex-col justify-center text-center">
-                <div>
-                    <p class="font-semibold text-sm uppercase">Tagihan Belum Lunas</p>
-                    <p class="text-2xl font-bold mt-1">{{ $jumlahBelumLunas ?? 0 }}</p>
-                </div>
+            <div class="bg-red-500 text-white p-4 rounded-lg shadow-lg flex flex-col justify-between">
+                <p class="font-semibold uppercase text-sm">Tagihan Belum Lunas</p>
+                <p class="text-3xl font-bold text-right">{{ $jumlahBelumLunas ?? 0 }}</p>
             </div>
-            <div class="stat-card bg-purple-500 text-white p-4 rounded-lg shadow-lg flex flex-col justify-center text-center">
-                <div>
-                    <p class="font-semibold text-sm uppercase">Status Layanan</p>
-                    <p class="text-2xl font-bold mt-1">{{ $statusPemutusan ?? 'Aktif' }}</p>
-                </div>
+            <div class="bg-purple-500 text-white p-4 rounded-lg shadow-lg flex flex-col justify-between">
+                <p class="font-semibold uppercase text-sm">Status Layanan</p>
+                <p class="text-3xl font-bold text-right">{{ $statusPemutusan ?? 'Aktif' }}</p>
             </div>
         </div>
-        
+
         <!-- Konten Bawah -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Tabel Riwayat Pembayaran -->

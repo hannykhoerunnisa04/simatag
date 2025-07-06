@@ -65,10 +65,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('pemutusan', PemutusanController::class);
     Route::resource('rekapkeuangan', RekapKeuanganController::class);
 
-    // Rute kustom untuk admin
-    Route::post('/pengguna/reset-password/{pengguna}', [PenggunaController::class, 'resetPassword'])->name('pengguna.reset_password');
+    // ✅ Rute kustom untuk reset password pengguna
+    Route::post('/pengguna/{pengguna}/reset-password', [PenggunaController::class, 'resetPassword'])->name('pengguna.resetPassword');
+
+    // Rute kustom lainnya
     Route::post('/validasibukti/{id_bukti}/validate', [ValidasiBuktiController::class, 'validatePayment'])->name('validasibukti.validate');
 });
+
 
 
 // --- GRUP RUTE KHUSUS UNTUK ROLE PELANGGAN ---

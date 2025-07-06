@@ -36,7 +36,9 @@ class TagihanController extends Controller
      */
     public function create()
     {
-        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get();
+        $pelanggans = \App\Models\Pelanggan::with('paket')->orderBy('nama_pelanggan')->get();
+
+        
         
         // Tambahan: Data bulan untuk dropdown
         $bulanOptions = [
