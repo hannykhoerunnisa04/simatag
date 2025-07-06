@@ -16,12 +16,14 @@ class PaketLayananController extends Controller
     {
         $query = PaketLayanan::query();
 
+        // Search by nama_paket
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where('nama_paket', 'like', '%' . $search . '%');
         }
 
         $paketLayanans = $query->orderBy('nama_paket', 'asc')->paginate(10);
+
         return view('paketlayanan.index', compact('paketLayanans'));
     }
 
@@ -30,7 +32,14 @@ class PaketLayananController extends Controller
      */
     public function create()
     {
-        return view('paketlayanan.create');
+        // Generate ID Paket otomatis
+        $lastNumber = PaketLayanan::selectRaw('MAX(CAST(SUBSTRING(id_paket, 4) AS UNSIGNED)) as max_number')
+                        ->value('max_number') ?? 0;
+
+        $nextNumber = $lastNumber + 1;
+        $nextIdPaket = 'PKT' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+        return view('paketlayanan.create', compact('nextIdPaket'));
     }
 
     /**
@@ -86,18 +95,17 @@ class PaketLayananController extends Controller
         try {
             // Cek apakah paket masih digunakan oleh pelanggan
             $pelangganCount = Pelanggan::where('id_paket', $paketlayanan->id_paket)->count();
-            
+
             if ($pelangganCount > 0) {
                 return redirect()->route('admin.paketlayanan.index')
                                  ->with('error', 'Paket layanan tidak dapat dihapus karena masih digunakan oleh ' . $pelangganCount . ' pelanggan.');
             }
-            
+
             // Hapus paket layanan
             $paketlayanan->delete();
-            
+
             return redirect()->route('admin.paketlayanan.index')
                              ->with('success', 'Paket layanan berhasil dihapus.');
-                             
         } catch (ModelNotFoundException $e) {
             return redirect()->route('admin.paketlayanan.index')
                              ->with('error', 'Paket layanan tidak ditemukan.');

@@ -39,26 +39,43 @@ class PenggunaController extends Controller
      * Menyimpan pengguna baru ke database.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'id_pengguna' => ['required', 'string', 'max:40', 'unique:pengguna,id_pengguna'],
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:100', 'unique:pengguna,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', Rule::in(['admin', 'pelanggan', 'atasan'])],
-        ]);
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:100', 'unique:pengguna,email'],
+        'password' => ['required', 'string', 'min:8', 'confirmed'],
+        'role' => ['required', Rule::in(['admin', 'pelanggan', 'atasan'])],
+    ]);
 
-        Pengguna::create([
-            'id_pengguna' => $request->id_pengguna,
-            'nama' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
-        ]);
+    // ✅ Generate ID otomatis berdasarkan role
+    $prefix = match (strtolower($request->role)) {
+        'admin'     => 'ADM',
+        'pelanggan' => 'PLG',
+        'atasan'    => 'ATS',
+        default     => 'USR',
+    };
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna baru berhasil ditambahkan.');
-    }
-    
+    $last = Pengguna::where('id_pengguna', 'like', "$prefix%")
+                    ->orderByDesc('id_pengguna')
+                    ->first();
+
+    $nextNumber = $last ? intval(substr($last->id_pengguna, 3)) + 1 : 1;
+    $id_pengguna = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+    // ✅ Simpan ke database
+    Pengguna::create([
+        'id_pengguna' => $id_pengguna,
+        'nama'        => $request->name,
+        'email'       => $request->email,
+        'password'    => Hash::make($request->password),
+        'role'        => $request->role,
+    ]);
+
+    return redirect()->route('admin.pengguna.index')
+                     ->with('success', 'Pengguna baru berhasil ditambahkan.');
+}
+
+
     /**
      * Menampilkan form untuk mengedit pengguna.
      */
@@ -73,18 +90,19 @@ class PenggunaController extends Controller
     public function update(Request $request, Pengguna $pengguna)
     {
         $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
+            'nama'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:100', Rule::unique('pengguna')->ignore($pengguna->id_pengguna, 'id_pengguna')],
-            'role' => ['required', Rule::in(['admin', 'pelanggan', 'atasan'])],
+            'role'  => ['required', Rule::in(['admin', 'pelanggan', 'atasan'])],
         ]);
 
         $pengguna->update([
-            'nama' => $request->nama,
+            'nama'  => $request->nama,
             'email' => $request->email,
-            'role' => $request->role,
+            'role'  => $request->role,
         ]);
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Data pengguna berhasil diperbarui.');
+        return redirect()->route('admin.pengguna.index')
+                         ->with('success', 'Data pengguna berhasil diperbarui.');
     }
 
     /**
@@ -98,11 +116,12 @@ class PenggunaController extends Controller
 
         $pengguna->delete();
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Pengguna berhasil dihapus.');
+        return redirect()->route('admin.pengguna.index')
+                         ->with('success', 'Pengguna berhasil dihapus.');
     }
-    
+
     /**
-     * ✅ Mereset password ke default ('password123')
+     * ✅ Mereset password ke default ('password123').
      */
     public function resetPassword(Pengguna $pengguna)
     {
@@ -113,6 +132,40 @@ class PenggunaController extends Controller
         $pengguna->password = Hash::make('password123');
         $pengguna->save();
 
-        return redirect()->route('admin.pengguna.index')->with('success', 'Password untuk pengguna ' . $pengguna->nama . ' berhasil direset ke default.');
+        return redirect()->route('admin.pengguna.index')
+                         ->with('success', 'Password untuk pengguna ' . $pengguna->nama . ' berhasil direset ke default.');
     }
+
+    /**
+     * ✅ Menghasilkan ID pengguna otomatis berdasarkan role.
+     * Contoh: admin → ADM001, pelanggan → PLG001, atasan → ATS001
+     */
+    // public function nextId($role)
+    // {
+    //     // Tentukan prefix berdasarkan role
+    //     $prefix = match (strtolower($role)) {
+    //         'admin'     => 'ADM',
+    //         'pelanggan' => 'PLG',
+    //         'atasan'    => 'ATS',
+    //         default     => 'USR',
+    //     };
+
+    //     // Ambil ID terakhir dengan prefix sama
+    //     $last = Pengguna::where('id_pengguna', 'like', "$prefix%")
+    //                     ->orderByDesc('id_pengguna')
+    //                     ->lockForUpdate() // ⛔ Lock biar aman dari race condition
+    //                     ->first();
+
+    //     if ($last) {
+    //         $lastNumber = intval(substr($last->id_pengguna, 3));
+    //         $nextNumber = $lastNumber + 1;
+    //     } else {
+    //         $nextNumber = 1;
+    //     }
+
+    //     // Format: ADM001, PLG002, ATS003
+    //     $nextId = $prefix . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
+    //     return response()->json(['next_id' => $nextId]);
+    // }
 }

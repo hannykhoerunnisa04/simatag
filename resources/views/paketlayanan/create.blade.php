@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tambah Paket Layanan Baru</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" xintegrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     body { background-color: #f0f4f8; }
   </style>
@@ -48,7 +48,8 @@
           <div class="space-y-6">
             <div>
               <label for="id_paket" class="block mb-2 text-sm font-medium text-gray-900">ID Paket</label>
-              <input type="text" id="id_paket" name="id_paket" value="{{ old('id_paket') }}" class="bg-gray-50 border @error('id_paket') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Contoh: PKT001" required>
+              <input type="text" id="id_paket" name="id_paket" value="{{ $nextIdPaket }}" readonly
+                class="bg-gray-200 cursor-not-allowed border @error('id_paket') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
               @error('id_paket')
                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
               @enderror
@@ -69,12 +70,11 @@
                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
               @enderror
             </div>
-            
           </div>
 
           {{-- Kolom Kanan --}}
           <div class="space-y-6">
-             <div>
+            <div>
               <label for="harga" class="block mb-2 text-sm font-medium text-gray-900">Harga (Rp)</label>
               <input type="number" id="harga" name="harga" value="{{ old('harga') }}" class="bg-gray-50 border @error('harga') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Contoh: 350000" required>
               @error('harga')
@@ -83,18 +83,18 @@
             </div>
             
             <div>
-                <label for="deskripsi" class="block mb-2 text-sm font-medium text-gray-900">Deskripsi</label>
-                <textarea id="deskripsi" name="deskripsi" rows="5" class="bg-gray-50 border @error('deskripsi') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Masukkan deskripsi atau detail paket...">{{ old('deskripsi') }}</textarea>
-                @error('deskripsi')
-                  <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                @enderror
+              <label for="deskripsi" class="block mb-2 text-sm font-medium text-gray-900">Deskripsi</label>
+              <textarea id="deskripsi" name="deskripsi" rows="5" class="bg-gray-50 border @error('deskripsi') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Masukkan deskripsi atau detail paket...">{{ old('deskripsi') }}</textarea>
+              @error('deskripsi')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+              @enderror
             </div>
           </div>
         </div>
 
         {{-- Tombol Aksi --}}
         <div class="mt-8 flex justify-end gap-4">
-          <a href="{{ route('admin.paketlayanan.index') }}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100">
+          <a href="{{ route('admin.paketlayanan.index') }}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700">
             Batal
           </a>
           <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">
@@ -103,7 +103,6 @@
         </div>
       </form>
     </div>
-
   </main>
 </body>
 </html>

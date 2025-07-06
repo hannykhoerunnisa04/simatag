@@ -55,7 +55,7 @@ class TagihanController extends Controller
 
         $tahunOptions = [];
         $currentYear = date('Y');
-        for ($i = $currentYear - 2; $i <= $currentYear + 2; $i++) {
+        for ($i = $currentYear; $i <= $currentYear + 2; $i++) {
             $tahunOptions[$i] = $i;
         }
 
@@ -63,39 +63,48 @@ class TagihanController extends Controller
     }
 
     /**
-     * Simpan tagihan baru.
+     * Simpan tagihan baru dengan ID otomatis.
      */
     public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            'id_tagihan' => 'required|string|max:40|unique:tagihan,id_tagihan',
-            'id_pelanggan' => 'required|exists:pelanggan,id_pelanggan',
-            'periode_bulan' => 'required|integer|min:1|max:12',
-            'periode_tahun' => 'required|integer',
-            'jumlah_tagihan' => 'required|numeric|min:0',
-            'tgl_jatuh_tempo' => 'nullable|date',
-            'status_tagihan' => 'required|in:lunas,belum,telat',
-        ]);
+{
+    $validatedData = $request->validate([
+        'id_pelanggan'   => 'required|exists:pelanggan,id_pelanggan',
+        'periode_bulan'  => 'required|integer|min:1|max:12',
+        'periode_tahun'  => 'required|integer',
+        'jumlah_tagihan' => 'required|numeric|min:0',
+        'tgl_jatuh_tempo'=> 'nullable|date',
+        'status_tagihan' => 'required|in:lunas,belum,telat',
+    ]);
 
-        $bulanIndonesia = [
-            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-        ];
+    // ✅ Cari nomor terbesar di DB
+    $lastNumber = Tagihan::selectRaw('MAX(CAST(SUBSTRING(id_tagihan, 5) AS UNSIGNED)) as max_number')
+                         ->value('max_number') ?? 0;
 
-        $periode = $bulanIndonesia[$validatedData['periode_bulan']] . ' ' . $validatedData['periode_tahun'];
+    // ✅ Generate ID baru & pastikan unik
+    do {
+        $lastNumber++;
+        $nextIdTagihan = 'TGH-' . str_pad($lastNumber, 3, '0', STR_PAD_LEFT);
+    } while (Tagihan::where('id_tagihan', $nextIdTagihan)->exists());
 
-        Tagihan::create([
-            'id_tagihan' => $validatedData['id_tagihan'],
-            'id_pelanggan' => $validatedData['id_pelanggan'],
-            'periode' => $periode,
-            'jumlah_tagihan' => $validatedData['jumlah_tagihan'],
-            'tgl_jatuh_tempo' => $validatedData['tgl_jatuh_tempo'],
-            'status_tagihan' => $validatedData['status_tagihan'],
-        ]);
+    $bulanIndonesia = [
+        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+    ];
+    $periode = $bulanIndonesia[$validatedData['periode_bulan']] . ' ' . $validatedData['periode_tahun'];
 
-        return redirect()->route('admin.tagihan.index')->with('success', 'Data tagihan baru berhasil ditambahkan.');
-    }
+    Tagihan::create([
+        'id_tagihan'     => $nextIdTagihan,
+        'id_pelanggan'   => $validatedData['id_pelanggan'],
+        'periode'        => $periode,
+        'jumlah_tagihan' => $validatedData['jumlah_tagihan'],
+        'tgl_jatuh_tempo'=> $validatedData['tgl_jatuh_tempo'],
+        'status_tagihan' => $validatedData['status_tagihan'],
+    ]);
+
+    return redirect()->route('admin.tagihan.index')->with('success', 'Tagihan baru berhasil ditambahkan.');
+}
+
 
     /**
      * Tampilkan form edit tagihan.
@@ -113,7 +122,7 @@ class TagihanController extends Controller
 
         $tahunOptions = [];
         $currentYear = date('Y');
-        for ($i = $currentYear - 5; $i <= $currentYear + 2; $i++) {
+        for ($i = $currentYear - 2; $i <= $currentYear + 2; $i++) {
             $tahunOptions[$i] = $i;
         }
 
@@ -133,11 +142,11 @@ class TagihanController extends Controller
         $tagihan = Tagihan::where('id_tagihan', $id)->firstOrFail();
 
         $validatedData = $request->validate([
-            'id_pelanggan' => 'required|exists:pelanggan,id_pelanggan',
-            'periode_bulan' => 'required|integer|min:1|max:12',
-            'periode_tahun' => 'required|integer',
+            'id_pelanggan'   => 'required|exists:pelanggan,id_pelanggan',
+            'periode_bulan'  => 'required|integer|min:1|max:12',
+            'periode_tahun'  => 'required|integer',
             'jumlah_tagihan' => 'required|numeric|min:0',
-            'tgl_jatuh_tempo' => 'nullable|date',
+            'tgl_jatuh_tempo'=> 'nullable|date',
             'status_tagihan' => 'required|in:lunas,belum,telat',
         ]);
 
@@ -146,14 +155,13 @@ class TagihanController extends Controller
             5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
-
         $periode = $bulanIndonesia[$validatedData['periode_bulan']] . ' ' . $validatedData['periode_tahun'];
 
         $tagihan->update([
-            'id_pelanggan' => $validatedData['id_pelanggan'],
-            'periode' => $periode,
+            'id_pelanggan'   => $validatedData['id_pelanggan'],
+            'periode'        => $periode,
             'jumlah_tagihan' => $validatedData['jumlah_tagihan'],
-            'tgl_jatuh_tempo' => $validatedData['tgl_jatuh_tempo'],
+            'tgl_jatuh_tempo'=> $validatedData['tgl_jatuh_tempo'],
             'status_tagihan' => $validatedData['status_tagihan'],
         ]);
 

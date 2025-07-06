@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail; // Uncomment jika pakai verifikasi email
+use Illuminate\Contracts\Auth\MustVerifyEmail; // Uncomment kalau butuh email verification
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -28,7 +28,7 @@ class Pengguna extends Authenticatable // Tambahkan MustVerifyEmail jika pakai e
 
     /**
      * Menunjukkan apakah primary key auto increment.
-     * Karena id_pengguna bertipe varchar (UUID), maka false.
+     * Karena id_pengguna bertipe string (UUID atau custom ID), maka false.
      *
      * @var bool
      */
@@ -47,7 +47,7 @@ class Pengguna extends Authenticatable // Tambahkan MustVerifyEmail jika pakai e
      * @var array<int, string>
      */
     protected $fillable = [
-        'id_pengguna',   // UUID akan diisi otomatis jika kosong
+        'id_pengguna',
         'nama',
         'email',
         'password',
@@ -72,18 +72,18 @@ class Pengguna extends Authenticatable // Tambahkan MustVerifyEmail jika pakai e
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', // Laravel otomatis hash password saat create/update
+        'password' => 'hashed', // Laravel >=10 otomatis hash password
     ];
 
     /**
-     * Boot method untuk model.
-     * Membuat UUID otomatis jika id_pengguna kosong saat create.
+     * Boot model untuk menambahkan UUID saat membuat record baru.
      */
     protected static function boot()
     {
         parent::boot();
 
         static::creating(function ($model) {
+            // Jika id_pengguna belum ada, isi dengan UUID
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
@@ -99,7 +99,7 @@ class Pengguna extends Authenticatable // Tambahkan MustVerifyEmail jika pakai e
     }
 
     /**
-     * Cek apakah pengguna ini memiliki role tertentu.
+     * Helper untuk cek role pengguna.
      *
      * @param  string  $role
      * @return bool

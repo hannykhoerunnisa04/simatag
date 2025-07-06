@@ -57,7 +57,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // --- GRUP RUTE KHUSUS UNTUK ROLE ADMIN ---
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    
+    Route::get('/pengguna/next-id/{role}', [PenggunaController::class, 'getNextId'])->name('admin.pengguna.next-id');
+
     // Resource Management (CRUD) hanya untuk Admin
     Route::resource('pelanggan', PelangganController::class);
     Route::resource('tagihan', AdminTagihanController::class); 
