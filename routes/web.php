@@ -23,6 +23,7 @@ use App\Http\Controllers\Pelanggan\TagihanController as PelangganTagihanControll
 use App\Http\Controllers\Pelanggan\UploadBuktiController as PelangganUploadBuktiController;
 use App\Http\Controllers\Pelanggan\PemutusanController as PelangganPemutusanController; 
 
+
 // Atasan Controllers
 use App\Http\Controllers\Atasan\DashboardController as AtasanDashboardController;
 use App\Http\Controllers\Atasan\RekapKeuanganController as AtasanRekapKeuanganController;
@@ -46,10 +47,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('dashboard');
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+     // TAMBAHKAN DUA BARIS INI
+    Route::get('/password/change', [ProfileController::class, 'showChangePasswordForm'])->name('password.change.form');
+    Route::put('/password/change', [ProfileController::class, 'updatePassword'])->name('password.change');
 });
+
 
 
 // --- GRUP RUTE KHUSUS UNTUK ROLE ADMIN ---
@@ -77,7 +79,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 // --- GRUP RUTE KHUSUS UNTUK ROLE PELANGGAN ---
 Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
     Route::get('/dashboard', [PelangganDashboardController::class, 'index'])->name('dashboard');
-    
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     // Diperbaiki: Semua rute pelanggan ditempatkan di dalam grup ini
     Route::resource('tagihan', PelangganTagihanController::class);
    // --- Rute untuk Upload Bukti didefinisikan secara manual ---

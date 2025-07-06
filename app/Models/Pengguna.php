@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail; // Tambahkan jika ingin fitur verifikasi email Breeze
+use Illuminate\Contracts\Auth\MustVerifyEmail; // Uncomment jika pakai verifikasi email
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Str; // Untuk UUID jika Id_pengguna adalah UUID
+use Illuminate\Support\Str;
 
-class Pengguna extends Authenticatable // Implement MustVerifyEmail jika pakai verifikasi email
+class Pengguna extends Authenticatable // Tambahkan MustVerifyEmail jika pakai email verification
 {
     use HasFactory, Notifiable;
 
@@ -27,16 +27,15 @@ class Pengguna extends Authenticatable // Implement MustVerifyEmail jika pakai v
     protected $primaryKey = 'id_pengguna';
 
     /**
-     * Menunjukkan apakah ID model auto-incrementing.
-     * Karena Id_pengguna adalah varchar(40), set ke false.
+     * Menunjukkan apakah primary key auto increment.
+     * Karena id_pengguna bertipe varchar (UUID), maka false.
      *
      * @var bool
      */
     public $incrementing = false;
 
     /**
-     * Tipe data dari primary key.
-     * Karena Id_pengguna adalah varchar (string).
+     * Tipe data primary key.
      *
      * @var string
      */
@@ -48,37 +47,37 @@ class Pengguna extends Authenticatable // Implement MustVerifyEmail jika pakai v
      * @var array<int, string>
      */
     protected $fillable = [
-        'id_pengguna', // Masukkan jika kamu akan mengisinya secara manual saat create, atau jika di-generate otomatis (lihat boot method)
+        'id_pengguna',   // UUID akan diisi otomatis jika kosong
         'nama',
         'email',
         'password',
         'role',
-        'email_verified_at', // Diperlukan oleh Breeze untuk verifikasi email
+        'email_verified_at',
     ];
 
     /**
-     * Atribut yang harus disembunyikan untuk serialisasi.
+     * Atribut yang disembunyikan saat serialisasi.
      *
      * @var array<int, string>
      */
     protected $hidden = [
         'password',
-        'remember_token', // Diperlukan oleh Breeze untuk fitur "Remember Me"
+        'remember_token',
     ];
 
     /**
-     * Atribut yang harus di-cast.
+     * Atribut yang di-cast ke tipe lain.
      *
      * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed', // Otomatis hash password saat diset
+        'password' => 'hashed', // Laravel otomatis hash password saat create/update
     ];
 
     /**
      * Boot method untuk model.
-     * Berguna jika Id_pengguna adalah UUID yang di-generate otomatis.
+     * Membuat UUID otomatis jika id_pengguna kosong saat create.
      */
     protected static function boot()
     {
@@ -86,8 +85,27 @@ class Pengguna extends Authenticatable // Implement MustVerifyEmail jika pakai v
 
         static::creating(function ($model) {
             if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid(); // Membuat UUID otomatis
+                $model->{$model->getKeyName()} = (string) Str::uuid();
             }
         });
+    }
+
+    /**
+     * Relasi: Satu pengguna memiliki satu data pelanggan.
+     */
+    public function pelanggan()
+    {
+        return $this->hasOne(Pelanggan::class, 'id_pengguna', 'id_pengguna');
+    }
+
+    /**
+     * Cek apakah pengguna ini memiliki role tertentu.
+     *
+     * @param  string  $role
+     * @return bool
+     */
+    public function hasRole($role)
+    {
+        return $this->role === $role;
     }
 }

@@ -6,62 +6,50 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Tagihan;
-use App\Models\Pelanggan;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class TagihanController extends Controller
 {
-    /**
-     * Menampilkan daftar tagihan milik pelanggan yang sedang login.
-     *
-     * @return \Illuminate\View\View
-     */
-    public function index()
+    public function index(Request $request)
     {
-        // 1. Dapatkan pengguna yang sedang login
         $user = Auth::user();
+        $pelanggan = $user->pelanggan;
 
-        // 2. Cari data pelanggan yang terhubung dengan pengguna tersebut
-        $pelanggan = Pelanggan::where('id_pengguna', $user->id_pengguna)->first();
-
-        // 3. Jika data pelanggan tidak ditemukan, kembalikan view dengan data kosong
         if (!$pelanggan) {
-            $tagihans = collect(); // Membuat koleksi kosong
-            return view('rolepelanggan.tagihan.index', compact('tagihans'));
+            // ✅ Fix: Kirim paginator kosong biar links() gak error
+            $emptyPaginator = new LengthAwarePaginator([], 0, 10);
+            return view('rolepelanggan.tagihan.index', [
+                'tagihans' => $emptyPaginator,
+                'search' => $request->search
+            ]);
         }
 
-        // 4. Jika pelanggan ditemukan, ambil semua tagihan miliknya
         $tagihans = Tagihan::where('id_pelanggan', $pelanggan->id_pelanggan)
-                            ->orderBy('tgl_jatuh_tempo', 'desc') // Urutkan berdasarkan yang paling baru
-                            ->paginate(10); // Gunakan paginasi
+            ->when($request->search, function ($query) use ($request) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('id_tagihan', 'like', '%' . $request->search . '%')
+                      ->orWhere('periode', 'like', '%' . $request->search . '%');
+                });
+            })
+            ->orderBy('tgl_jatuh_tempo', 'desc')
+            ->paginate(10)
+            ->withQueryString();
 
-        // 5. Kirim data tagihan ke view
-        return view('rolepelanggan.tagihan.index', compact('tagihans'));
+        return view('rolepelanggan.tagihan.index', [
+            'tagihans' => $tagihans,
+            'search' => $request->search
+        ]);
     }
 
-    /**
-     * Menampilkan detail satu tagihan spesifik.
-     * Termasuk pengecekan keamanan agar pelanggan tidak bisa melihat tagihan orang lain.
-     *
-     * @param  \App\Models\Tagihan  $tagihan
-     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
-     */
     public function show(Tagihan $tagihan)
     {
-        // Dapatkan ID pelanggan yang sedang login
-        $idPelangganLogin = Auth::user()->pelanggan->id_pelanggan;
+        $idPelangganLogin = Auth::user()->pelanggan->id_pelanggan ?? null;
 
-        // Keamanan: Pastikan tagihan yang diminta adalah milik pelanggan yang sedang login
         if ($tagihan->id_pelanggan !== $idPelangganLogin) {
-            // Jika bukan, kembalikan ke halaman daftar tagihan dengan pesan error
             return redirect()->route('pelanggan.tagihan.index')
-                             ->with('error', 'Anda tidak memiliki akses ke tagihan ini.');
+                ->with('error', 'Anda tidak memiliki akses ke tagihan ini.');
         }
-        
-        // Jika cocok, tampilkan halaman detail tagihan
+
         return view('rolepelanggan.tagihan.show', compact('tagihan'));
     }
-
-    // Untuk role pelanggan, method create, store, edit, update, dan destroy
-    // biasanya tidak diperlukan karena mereka tidak mengelola tagihan sendiri.
-    // Metode-metode ini bisa dibiarkan kosong atau dihapus.
 }

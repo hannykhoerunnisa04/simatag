@@ -30,7 +30,7 @@
                 <span class="text-blue-500">Sistem Informasi Manajemen Tagihan (SIMA-TAG)</span>
             </h1>
             <div class="flex items-center gap-3 mt-4 sm:mt-0">
-                <i class="fas fa-user-tie text-2xl text-blue-600"></i>
+                <i class="fas fa-user-circle text-2xl text-blue-600"></i>
                 <span class="text-gray-700 text-sm font-semibold">{{ Auth::user()->nama ?? 'Atasan' }}</span>
             </div>
         </header>

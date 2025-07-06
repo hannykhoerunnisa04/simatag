@@ -2,59 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProfileUpdateRequest;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the user's profile form.
+     * Menampilkan form untuk mengubah password.
      */
-    public function edit(Request $request): View
+    public function showChangePasswordForm()
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        return view('profile.change-password');
     }
 
     /**
-     * Update the user's profile information.
+     * Memperbarui password pengguna.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function updatePassword(Request $request)
     {
-        $request->user()->fill($request->validated());
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
-    }
-
-    /**
-     * Delete the user's account.
-     */
-    public function destroy(Request $request): RedirectResponse
-    {
-        $request->validateWithBag('userDeletion', [
-            'password' => ['required', 'current_password'],
+        $validated = $request->validateWithBag('updatePassword', [
+            'current_password' => ['required', 'current_password'],
+            'password' => ['required', Password::defaults(), 'confirmed'],
         ]);
 
-        $user = $request->user();
+        $request->user()->update([
+            'password' => Hash::make($validated['password']),
+        ]);
 
-        Auth::logout();
-
-        $user->delete();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        return Redirect::route('password.change.form')->with('status', 'password-updated');
     }
+    
+    // Anda bisa menambahkan method edit, update, dan destroy untuk profil di sini nanti
+    // public function edit(Request $request) { ... }
+    // public function update(Request $request) { ... }
+    // public function destroy(Request $request) { ... }
 }

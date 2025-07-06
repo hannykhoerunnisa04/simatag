@@ -21,10 +21,31 @@
             <h1 class="text-2xl font-bold text-gray-800">
                 Dashboard - <span class="text-blue-500">Sistem Informasi Manajemen Tagihan (SIMA-TAG)</span>
             </h1>
-            <div class="flex items-center gap-3 mt-4 sm:mt-0">
-                <i class="fas fa-user-circle text-2xl text-blue-600"></i>
-                <span class="text-gray-700 text-sm font-semibold">{{ Auth::user()->nama ?? 'Pelanggan' }}</span>
-            </div>
+           <div class="relative inline-block text-left">
+    <div class="flex items-center gap-2 cursor-pointer" onclick="toggleDropdown()">
+        <i class="fas fa-user-circle text-2xl text-blue-600"></i>
+        <span class="text-gray-700 text-sm font-semibold">{{ Auth::user()->nama ?? 'Pelanggan' }}</span>
+        <i class="fas fa-chevron-down text-xs text-gray-600"></i>
+    </div>
+    <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded shadow-lg z-50">
+        <a href="{{ route('password.change.form') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+            <i class="fas fa-key mr-2"></i> Ubah Password
+        </a>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleDropdown() {
+        document.getElementById('dropdownMenu').classList.toggle('hidden');
+    }
+</script>
+
         </header>
 
         <!-- Kartu Statistik -->

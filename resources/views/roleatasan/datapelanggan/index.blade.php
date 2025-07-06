@@ -20,7 +20,7 @@
             Data Pelanggan
         </h1>
         <div class="flex items-center gap-3">
-            <i class="fas fa-user-tie text-2xl md:text-3xl text-blue-600"></i>
+            <i class="fas fa-user-circle text-2xl md:text-3xl text-blue-600"></i>
             <span class="text-gray-700 text-sm md:text-base">Atasan</span>
         </div>
     </header>
