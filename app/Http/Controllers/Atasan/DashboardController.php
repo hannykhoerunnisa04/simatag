@@ -7,18 +7,22 @@ use Illuminate\Http\Request;
 use App\Models\Tagihan;
 use App\Models\Pelanggan;
 use App\Models\Pemutusan;
-use App\Models\Pengguna; // Ditambahkan
-use App\Models\Pembayaran; // Ditambahkan
+use App\Models\Pengguna;
+use App\Models\Pembayaran;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     /**
-     * Menampilkan dashboard untuk atasan.
+     * Menampilkan dashboard untuk atasan dengan filter tahun.
      */
-    public function index()
+    public function index(Request $request)
     {
+        // Ambil tahun dari query string atau default ke tahun sekarang
+        $tahunTagihan = $request->query('tahun_tagihan', now()->year);
+        $tahunPemasukan = $request->query('tahun_pemasukan', now()->year);
+
         // --- Kartu Statistik ---
         $totalPelangganAktif = Pelanggan::where('status_pelanggan', 'aktif')->count();
         $totalTagihanBulanIni = Tagihan::whereYear('tgl_jatuh_tempo', now()->year)
@@ -26,32 +30,37 @@ class DashboardController extends Controller
                                        ->count();
         $totalPemutusan = Pemutusan::where('status_pemutusan', '!=', 'selesai')->count();
 
-        // --- Data untuk Grafik ---
+        // --- Data untuk Grafik Tagihan ---
         $chartDataBulanan = Tagihan::select(
                                 DB::raw("MONTH(tgl_jatuh_tempo) as nomor_bulan, DATE_FORMAT(tgl_jatuh_tempo, '%b') as bulan"),
                                 DB::raw("COUNT(CASE WHEN status_tagihan = 'lunas' THEN 1 END) as lunas"),
                                 DB::raw("COUNT(CASE WHEN status_tagihan != 'lunas' THEN 1 END) as belum_lunas")
                             )
-                            ->whereYear('tgl_jatuh_tempo', now()->year)
+                            ->whereYear('tgl_jatuh_tempo', $tahunTagihan)
                             ->groupBy('nomor_bulan', 'bulan')
                             ->orderBy('nomor_bulan', 'asc')
                             ->get();
 
+        // --- Data untuk Grafik Pemasukan ---
         $chartDataPemasukan = Tagihan::select(
                                 DB::raw("MONTH(tgl_jatuh_tempo) as nomor_bulan, DATE_FORMAT(tgl_jatuh_tempo, '%b') as bulan"),
                                 DB::raw("SUM(jumlah_tagihan) as total")
                             )
                             ->where('status_tagihan', 'lunas')
-                            ->whereYear('tgl_jatuh_tempo', now()->year)
+                            ->whereYear('tgl_jatuh_tempo', $tahunPemasukan)
                             ->groupBy('nomor_bulan', 'bulan')
                             ->orderBy('nomor_bulan', 'asc')
                             ->get();
 
-        // --- Diperbarui: Logika untuk Notifikasi Gabungan ---
+        // --- Notifikasi Gabungan ---
         $notifikasi = collect();
 
-        // 1. Ambil pembayaran yang menunggu validasi oleh admin
-        $pembayaranPending = Pembayaran::where('status_validasi', 'pending')->with('tagihan.pelanggan')->latest('tgl_bayar')->take(3)->get();
+        // 1. Pembayaran yang menunggu validasi
+        $pembayaranPending = Pembayaran::where('status_validasi', 'pending')
+                                       ->with('tagihan.pelanggan')
+                                       ->latest('tgl_bayar')
+                                       ->take(3)
+                                       ->get();
         foreach ($pembayaranPending as $p) {
             $namaPelanggan = $p->tagihan->pelanggan->nama_pelanggan ?? 'Pelanggan';
             $notifikasi->push([
@@ -62,8 +71,8 @@ class DashboardController extends Controller
             ]);
         }
 
-        // 2. Ambil pengguna baru yang ditambahkan oleh admin
-        $penggunaBaru = Pengguna::latest()->take(3)->get(); // Menggunakan 'created_at' default dari model Pengguna
+        // 2. Pengguna baru yang ditambahkan
+        $penggunaBaru = Pengguna::latest()->take(3)->get();
         foreach ($penggunaBaru as $u) {
             $notifikasi->push([
                 'tanggal' => $u->created_at,
@@ -72,10 +81,9 @@ class DashboardController extends Controller
                 'url' => route('admin.pengguna.index')
             ]);
         }
-        
-        // Urutkan semua notifikasi berdasarkan tanggal dan ambil 5 terbaru
-        $notifikasi = $notifikasi->sortByDesc('tanggal')->take(5);
 
+        // Urutkan notifikasi dan ambil 5 terbaru
+        $notifikasi = $notifikasi->sortByDesc('tanggal')->take(5);
 
         return view('dashboards.atasan', compact(
             'totalPelangganAktif',
@@ -83,7 +91,9 @@ class DashboardController extends Controller
             'totalPemutusan',
             'chartDataBulanan',
             'chartDataPemasukan',
-            'notifikasi' // Kirim notifikasi ke view
+            'tahunTagihan',
+            'tahunPemasukan',
+            'notifikasi'
         ));
     }
 }

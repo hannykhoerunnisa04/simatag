@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pemutusan; // Pastikan model Pemutusan sudah dibuat
-use App\Models\Pelanggan;  // Digunakan untuk relasi dan update status
+use App\Models\Pemutusan; // Model Pemutusan
+use App\Models\Pelanggan; // Model Pelanggan
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PemutusanController extends Controller
 {
     /**
-     * Menampilkan daftar semua data pemutusan.
+     * Tampilkan daftar semua data pemutusan.
      */
     public function index(Request $request)
     {
-        $query = Pemutusan::with('pelanggan'); // Eager load untuk mengambil nama pelanggan
+        $query = Pemutusan::with('pelanggan'); // Eager load pelanggan
 
-        // Logika untuk pencarian
+        // Fitur pencarian berdasarkan ID Pelanggan
         if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where('id_pelanggan', 'like', '%' . $search . '%');
+            $query->where('id_pelanggan', 'like', '%' . $request->search . '%');
         }
 
         $pemutusans = $query->orderBy('tgl_pemutusan', 'desc')->paginate(10);
@@ -28,94 +27,100 @@ class PemutusanController extends Controller
     }
 
     /**
-     * Menampilkan form untuk membuat data pemutusan baru.
+     * Tampilkan form untuk membuat data pemutusan baru.
      */
     public function create()
     {
-        // Mengambil pelanggan yang statusnya masih 'aktif'
-        $pelanggans = Pelanggan::where('status_pelanggan', 'aktif')->orderBy('nama_pelanggan')->get();
-        return view('pemutusan.create', compact('pelanggans'));
+        // Ambil pelanggan aktif untuk dropdown
+        $pelanggans = Pelanggan::where('status_pelanggan', 'aktif')
+                        ->orderBy('nama_pelanggan')->get();
+
+        // Generate ID Pemutusan otomatis
+        $last = Pemutusan::orderBy('id_pemutusan', 'desc')->first();
+        if (!$last) {
+            $newId = 'PMT-001';
+        } else {
+            $num = intval(substr($last->id_pemutusan, 4)) + 1;
+            $newId = 'PMT-' . str_pad($num, 3, '0', STR_PAD_LEFT);
+        }
+
+        return view('pemutusan.create', compact('pelanggans', 'newId'));
     }
 
     /**
-     * Menyimpan data pemutusan baru ke database.
+     * Simpan data pemutusan baru ke database.
      */
     public function store(Request $request)
     {
-        // Validasi data yang masuk dari form
         $validatedData = $request->validate([
             'id_pemutusan' => 'required|string|max:40|unique:pemutusan,id_pemutusan',
             'id_pelanggan' => 'required|string|exists:pelanggan,id_pelanggan',
             'tgl_pemutusan' => 'required|date',
             'alasan_pemutusan' => 'nullable|string',
-            'status_pemutusan' => 'required|in:permanen,sementara,selesai',
+            'status_pemutusan' => 'required|in:permanen,selesai',
         ]);
 
-        // Menggunakan transaksi database untuk memastikan kedua operasi berhasil
         DB::beginTransaction();
         try {
-            // 1. Buat data pemutusan baru
+            // Simpan data pemutusan
             Pemutusan::create($validatedData);
 
-            // 2. Update status pelanggan menjadi 'tidak aktif' jika pemutusan bukan 'selesai'
+            // Update status pelanggan (kecuali jika status selesai)
             $pelanggan = Pelanggan::find($validatedData['id_pelanggan']);
             if ($pelanggan && $validatedData['status_pemutusan'] !== 'selesai') {
                 $pelanggan->status_pelanggan = 'tidak aktif';
                 $pelanggan->save();
             }
 
-            DB::commit(); // Simpan perubahan jika semua berhasil
-
+            DB::commit();
             return redirect()->route('admin.pemutusan.index')
-                             ->with('success', 'Data pemutusan berhasil ditambahkan dan status pelanggan telah diperbarui.');
+                             ->with('success', 'Data pemutusan berhasil ditambahkan.');
 
         } catch (\Exception $e) {
-            DB::rollBack(); // Batalkan semua operasi jika terjadi error
+            DB::rollBack();
             return redirect()->back()
                              ->with('error', 'Gagal menyimpan data pemutusan. Error: ' . $e->getMessage())
                              ->withInput();
         }
     }
-    
+
     /**
-     * Menampilkan form untuk mengedit data pemutusan.
+     * Tampilkan form edit data pemutusan.
      */
     public function edit(Pemutusan $pemutusan)
     {
-        // Mengirim data pemutusan yang akan diedit ke view
-        return view('pemutusan.edit', compact('pemutusan'));
+        $pelanggans = Pelanggan::orderBy('nama_pelanggan')->get();
+        return view('pemutusan.edit', compact('pemutusan', 'pelanggans'));
     }
 
     /**
-     * Memperbarui data pemutusan di database.
+     * Update data pemutusan.
      */
     public function update(Request $request, Pemutusan $pemutusan)
     {
-        // Validasi data yang masuk dari form
         $validatedData = $request->validate([
             'tgl_pemutusan' => 'required|date',
             'alasan_pemutusan' => 'nullable|string',
-            'status_pemutusan' => 'required|in:permanen,sementara,selesai',
+            'status_pemutusan' => 'required|in:permanen,selesai',
         ]);
 
         DB::beginTransaction();
         try {
             $statusSebelumnya = $pemutusan->status_pemutusan;
-            
-            // Update data pemutusan
+
             $pemutusan->update($validatedData);
 
-            // Jika status pemutusan diubah menjadi 'selesai'
+            $pelanggan = $pemutusan->pelanggan;
+
+            // Jika status diubah menjadi selesai
             if ($validatedData['status_pemutusan'] == 'selesai' && $statusSebelumnya != 'selesai') {
-                $pelanggan = $pemutusan->pelanggan;
                 if ($pelanggan) {
                     $pelanggan->status_pelanggan = 'aktif';
                     $pelanggan->save();
                 }
             } 
-            // Jika status diubah DARI 'selesai' menjadi status lain (sementara/permanen)
-            else if ($statusSebelumnya == 'selesai' && $validatedData['status_pemutusan'] != 'selesai') {
-                $pelanggan = $pemutusan->pelanggan;
+            // Jika status berubah dari selesai ke permanen
+            elseif ($statusSebelumnya == 'selesai' && $validatedData['status_pemutusan'] != 'selesai') {
                 if ($pelanggan) {
                     $pelanggan->status_pelanggan = 'tidak aktif';
                     $pelanggan->save();
@@ -135,17 +140,20 @@ class PemutusanController extends Controller
     }
 
     /**
-     * Menghapus data pemutusan dari database.
+     * Hapus data pemutusan.
      */
     public function destroy(Pemutusan $pemutusan)
     {
+        DB::beginTransaction();
         try {
             $pemutusan->delete();
+            DB::commit();
             return redirect()->route('admin.pemutusan.index')
                              ->with('success', 'Data pemutusan berhasil dihapus.');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->route('admin.pemutusan.index')
-                             ->with('error', 'Gagal menghapus data pemutusan.');
+                             ->with('error', 'Gagal menghapus data pemutusan. Error: ' . $e->getMessage());
         }
     }
 }

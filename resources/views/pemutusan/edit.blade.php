@@ -66,7 +66,7 @@
             <div>
               <label for="status_pemutusan" class="block mb-2 text-sm font-medium text-gray-900">Status Pemutusan</label>
               <select id="status_pemutusan" name="status_pemutusan" class="bg-gray-50 border @error('status_pemutusan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                <option value="sementara" {{ old('status_pemutusan', $pemutusan->status_pemutusan) == 'sementara' ? 'selected' : '' }}>Sementara</option>
+                {{-- <option value="sementara" {{ old('status_pemutusan', $pemutusan->status_pemutusan) == 'sementara' ? 'selected' : '' }}>Sementara</option> --}}
                 <option value="permanen" {{ old('status_pemutusan', $pemutusan->status_pemutusan) == 'permanen' ? 'selected' : '' }}>Permanen</option>
                 <option value="selesai" {{ old('status_pemutusan', $pemutusan->status_pemutusan) == 'selesai' ? 'selected' : '' }}>Selesai</option>
               </select>

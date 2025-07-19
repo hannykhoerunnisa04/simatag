@@ -18,7 +18,7 @@
   <main class="md:ml-64 flex-1 p-6 md:p-8 lg:p-10 w-full">
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-4 border-b border-gray-300">
         <h1 class="text-3xl md:text-4xl font-bold text-gray-800">
-            Manajemen Data Pemutusan
+            Data Pemutusan
         </h1>
         <div class="flex items-center gap-3">
             <i class="fas fa-user-circle text-2xl md:text-3xl text-blue-600"></i>

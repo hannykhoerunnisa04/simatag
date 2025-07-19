@@ -82,7 +82,7 @@
 
     <div class="mt-6">
       {{-- Menambahkan query string ke link paginasi agar filter tetap aktif --}}
-      {{-- {{ $pelanggans->appends(request()->query())->links('vendor.pagination.tailwind') }} --}}
+      {{ $pelanggans->appends(request()->query())->links('vendor.pagination.tailwind') }}
     </div>
   </main>
 </body>

@@ -63,48 +63,55 @@ class TagihanController extends Controller
     }
 
     /**
-     * Simpan tagihan baru dengan ID otomatis.
+     * Simpan tagihan baru dengan ID otomatis & validasi duplikat.
      */
     public function store(Request $request)
-{
-    $validatedData = $request->validate([
-        'id_pelanggan'   => 'required|exists:pelanggan,id_pelanggan',
-        'periode_bulan'  => 'required|integer|min:1|max:12',
-        'periode_tahun'  => 'required|integer',
-        'jumlah_tagihan' => 'required|numeric|min:0',
-        'tgl_jatuh_tempo'=> 'nullable|date',
-        'status_tagihan' => 'required|in:lunas,belum,telat',
-    ]);
+    {
+        $validatedData = $request->validate([
+            'id_pelanggan'   => 'required|exists:pelanggan,id_pelanggan',
+            'periode_bulan'  => 'required|integer|min:1|max:12',
+            'periode_tahun'  => 'required|integer',
+            'jumlah_tagihan' => 'required|numeric|min:0',
+            'tgl_jatuh_tempo'=> 'nullable|date',
+            'status_tagihan' => 'required|in:lunas,belum,telat',
+        ]);
 
-    // ✅ Cari nomor terbesar di DB
-    $lastNumber = Tagihan::selectRaw('MAX(CAST(SUBSTRING(id_tagihan, 5) AS UNSIGNED)) as max_number')
-                         ->value('max_number') ?? 0;
+        $bulanIndonesia = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $periode = $bulanIndonesia[$validatedData['periode_bulan']] . ' ' . $validatedData['periode_tahun'];
 
-    // ✅ Generate ID baru & pastikan unik
-    do {
-        $lastNumber++;
-        $nextIdTagihan = 'TGH-' . str_pad($lastNumber, 3, '0', STR_PAD_LEFT);
-    } while (Tagihan::where('id_tagihan', $nextIdTagihan)->exists());
+        // ✅ Cek duplikat untuk pelanggan & periode
+        $duplicate = Tagihan::where('id_pelanggan', $validatedData['id_pelanggan'])
+            ->where('periode', $periode)
+            ->exists();
 
-    $bulanIndonesia = [
-        1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
-        5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
-        9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
-    ];
-    $periode = $bulanIndonesia[$validatedData['periode_bulan']] . ' ' . $validatedData['periode_tahun'];
+        if ($duplicate) {
+            return back()->withErrors([
+                'periode' => 'Tagihan untuk pelanggan ini di periode ' . $periode . ' sudah ada.'
+            ])->withInput();
+        }
 
-    Tagihan::create([
-        'id_tagihan'     => $nextIdTagihan,
-        'id_pelanggan'   => $validatedData['id_pelanggan'],
-        'periode'        => $periode,
-        'jumlah_tagihan' => $validatedData['jumlah_tagihan'],
-        'tgl_jatuh_tempo'=> $validatedData['tgl_jatuh_tempo'],
-        'status_tagihan' => $validatedData['status_tagihan'],
-    ]);
+        // ✅ Cari nomor terbesar di DB untuk ID otomatis
+        $lastNumber = Tagihan::selectRaw('MAX(CAST(SUBSTRING(id_tagihan, 5) AS UNSIGNED)) as max_number')
+                             ->value('max_number') ?? 0;
 
-    return redirect()->route('admin.tagihan.index')->with('success', 'Tagihan baru berhasil ditambahkan.');
-}
+        $nextIdTagihan = 'TGH-' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
 
+        // ✅ Simpan data
+        Tagihan::create([
+            'id_tagihan'     => $nextIdTagihan,
+            'id_pelanggan'   => $validatedData['id_pelanggan'],
+            'periode'        => $periode,
+            'jumlah_tagihan' => $validatedData['jumlah_tagihan'],
+            'tgl_jatuh_tempo'=> $validatedData['tgl_jatuh_tempo'],
+            'status_tagihan' => $validatedData['status_tagihan'],
+        ]);
+
+        return redirect()->route('admin.tagihan.index')->with('success', 'Tagihan baru berhasil ditambahkan.');
+    }
 
     /**
      * Tampilkan form edit tagihan.
@@ -135,7 +142,7 @@ class TagihanController extends Controller
     }
 
     /**
-     * Update data tagihan.
+     * Update data tagihan dengan validasi duplikat.
      */
     public function update(Request $request, $id)
     {
@@ -156,6 +163,18 @@ class TagihanController extends Controller
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
         $periode = $bulanIndonesia[$validatedData['periode_bulan']] . ' ' . $validatedData['periode_tahun'];
+
+        // ✅ Cek duplikat (kecuali dirinya sendiri)
+        $duplicate = Tagihan::where('id_pelanggan', $validatedData['id_pelanggan'])
+            ->where('periode', $periode)
+            ->where('id_tagihan', '!=', $tagihan->id_tagihan)
+            ->exists();
+
+        if ($duplicate) {
+            return back()->withErrors([
+                'periode' => 'Tagihan untuk pelanggan ini di periode ' . $periode . ' sudah ada.'
+            ])->withInput();
+        }
 
         $tagihan->update([
             'id_pelanggan'   => $validatedData['id_pelanggan'],

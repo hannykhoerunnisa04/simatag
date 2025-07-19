@@ -30,7 +30,7 @@ class PelangganController extends Controller
         }
 
         // Mengurutkan berdasarkan nama pelanggan dan melakukan paginasi
-        $pelanggans = $query->orderBy('nama_pelanggan', 'asc')->paginate(10);
+$pelanggans = $query->orderBy('nama_pelanggan', 'asc')->paginate(10);
 
         // Mengirim data ke view
         return view('roleatasan.datapelanggan.index', compact('pelanggans'));

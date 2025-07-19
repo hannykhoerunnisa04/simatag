@@ -22,6 +22,7 @@
     </header>
 
     <div class="bg-white shadow-xl rounded-lg p-6 md:p-8">
+      {{-- Alert Error --}}
       @if ($errors->any())
           <div class="mb-6 p-4 bg-red-100 text-red-700 border-l-4 border-red-500 rounded-r-lg" role="alert">
               <p class="font-bold">Terjadi kesalahan!</p>
@@ -37,7 +38,9 @@
         @csrf
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
           
+          {{-- Kolom Kiri --}}
           <div class="space-y-6">
+            {{-- Pelanggan --}}
             <div>
               <label for="id_pelanggan" class="block mb-2 text-sm font-medium text-gray-900">Pilih Pelanggan</label>
               <select id="id_pelanggan" name="id_pelanggan" onchange="updateHargaTagihan()"
@@ -51,11 +54,16 @@
                       </option>
                   @endforeach
               </select>
+              @error('id_pelanggan')
+                  <span class="text-red-600 text-sm">{{ $message }}</span>
+              @enderror
             </div>
 
+            {{-- Periode --}}
             <div>
               <label class="block mb-2 text-sm font-medium text-gray-900">Periode Tagihan</label>
               <div class="flex items-center gap-4">
+                {{-- Bulan --}}
                 <div class="w-1/2">
                   <select name="periode_bulan"
                     class="bg-gray-50 border @error('periode_bulan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
@@ -66,32 +74,55 @@
                       </option>
                     @endfor
                   </select>
+                  @error('periode_bulan')
+                      <span class="text-red-600 text-sm">{{ $message }}</span>
+                  @enderror
                 </div>
+                {{-- Tahun --}}
                 <div class="w-1/2">
-                    <select name="periode_tahun"
-                      class="bg-gray-50 border @error('periode_tahun') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                        <option value="" disabled selected>-- Pilih Tahun --</option>
-                        @for ($i = date('Y'); $i <= date('Y') + 2; $i++)
-                            <option value="{{ $i }}" {{ old('periode_tahun', date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
-                        @endfor
-                    </select>
+                  <select name="periode_tahun"
+                    class="bg-gray-50 border @error('periode_tahun') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                    <option value="" disabled selected>-- Pilih Tahun --</option>
+                    @for ($i = date('Y'); $i <= date('Y') + 2; $i++)
+                      <option value="{{ $i }}" {{ old('periode_tahun', date('Y')) == $i ? 'selected' : '' }}>{{ $i }}</option>
+                    @endfor
+                  </select>
+                  @error('periode_tahun')
+                      <span class="text-red-600 text-sm">{{ $message }}</span>
+                  @enderror
                 </div>
               </div>
+              {{-- Error untuk kombinasi periode --}}
+              @error('periode')
+                  <span class="text-red-600 text-sm block mt-1">{{ $message }}</span>
+              @enderror
             </div>
           </div>
 
+          {{-- Kolom Kanan --}}
           <div class="space-y-6">
+            {{-- Jumlah Tagihan --}}
             <div>
                 <label for="jumlah_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Jumlah Tagihan (Rp)</label>
                 <input type="number" id="jumlah_tagihan" name="jumlah_tagihan" value="{{ old('jumlah_tagihan') }}"
                   class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                   placeholder="Pilih pelanggan untuk melihat harga" required readonly>
+                @error('jumlah_tagihan')
+                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                @enderror
             </div>
+
+            {{-- Tanggal Jatuh Tempo --}}
             <div>
               <label for="tgl_jatuh_tempo" class="block mb-2 text-sm font-medium text-gray-900">Tanggal Jatuh Tempo</label>
               <input type="date" id="tgl_jatuh_tempo" name="tgl_jatuh_tempo" value="{{ old('tgl_jatuh_tempo') }}"
                 class="bg-gray-50 border @error('tgl_jatuh_tempo') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+              @error('tgl_jatuh_tempo')
+                  <span class="text-red-600 text-sm">{{ $message }}</span>
+              @enderror
             </div>
+
+            {{-- Status Tagihan --}}
             <div>
               <label for="status_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Status Tagihan</label>
               <select id="status_tagihan" name="status_tagihan"
@@ -100,10 +131,14 @@
                 <option value="lunas" {{ old('status_tagihan') == 'lunas' ? 'selected' : '' }}>Lunas</option>
                 <option value="telat" {{ old('status_tagihan') == 'telat' ? 'selected' : '' }}>Telat</option>
               </select>
+              @error('status_tagihan')
+                  <span class="text-red-600 text-sm">{{ $message }}</span>
+              @enderror
             </div>
           </div>
         </div>
 
+        {{-- Tombol Aksi --}}
         <div class="mt-8 flex justify-end gap-4">
           <a href="{{ route('admin.tagihan.index') }}"
             class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700">
@@ -118,7 +153,7 @@
     </div>
   </main>
   
-  {{-- Skrip untuk mengisi harga otomatis --}}
+  {{-- Skrip update harga otomatis --}}
   <script>
     function updateHargaTagihan() {
       const selectPelanggan = document.getElementById('id_pelanggan');

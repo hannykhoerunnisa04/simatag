@@ -13,7 +13,7 @@ class PemutusanController extends Controller
     /**
      * Menampilkan informasi pemutusan untuk pelanggan yang sedang login.
      */
-    public function index()
+     public function index()
     {
         // 1. Dapatkan pengguna yang sedang login
         $user = Auth::user();

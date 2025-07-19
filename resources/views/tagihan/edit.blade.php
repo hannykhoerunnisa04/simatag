@@ -7,7 +7,6 @@
     <title>Edit Tagihan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
-        xintegrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         body {
@@ -54,30 +53,29 @@
 
                     {{-- Kolom Kiri --}}
                     <div class="space-y-6">
+                        {{-- ID Tagihan --}}
                         <div>
-                            <label for="id_tagihan" class="block mb-2 text-sm font-medium text-gray-900">ID
-                                Tagihan</label>
+                            <label for="id_tagihan" class="block mb-2 text-sm font-medium text-gray-900">ID Tagihan</label>
                             <input type="text" id="id_tagihan" name="id_tagihan" value="{{ $tagihan->id_tagihan }}"
                                 class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                                 readonly>
                         </div>
 
+                        {{-- Pelanggan --}}
                         <div>
-                            <label for="id_pelanggan"
-                                class="block mb-2 text-sm font-medium text-gray-900">Pelanggan</label>
-                            {{-- Di form edit, pelanggan tidak bisa diubah untuk menjaga integritas data --}}
+                            <label for="id_pelanggan" class="block mb-2 text-sm font-medium text-gray-900">Pelanggan</label>
                             <input type="text"
                                 value="{{ $tagihan->pelanggan->nama_pelanggan ?? 'N/A' }} ({{ $tagihan->id_pelanggan }})"
                                 class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5"
                                 readonly>
-                            {{-- Simpan id pelanggan di input tersembunyi agar tetap terkirim saat update --}}
                             <input type="hidden" name="id_pelanggan" value="{{ $tagihan->id_pelanggan }}">
                         </div>
 
+                        {{-- Periode --}}
                         <div>
                             <label class="block mb-2 text-sm font-medium text-gray-900">Periode Tagihan</label>
                             <div class="flex items-center gap-4">
-                                {{-- Dropdown Bulan --}}
+                                {{-- Bulan --}}
                                 <div class="w-1/2">
                                     <select name="periode_bulan"
                                         class="bg-gray-50 border @error('periode_bulan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -85,12 +83,17 @@
                                         <option value="" disabled>-- Pilih Bulan --</option>
                                         @for ($i = 1; $i <= 12; $i++)
                                             <option value="{{ $i }}"
-                                                {{ old('periode_bulan', $bulanTagihan) == $i ? 'selected' : '' }}>
-                                                {{ \Carbon\Carbon::create()->month($i)->format('F') }}</option>
+                                                {{ old('periode_bulan', $bulanAngka) == $i ? 'selected' : '' }}>
+                                                {{ \Carbon\Carbon::create()->month($i)->translatedFormat('F') }}
+                                            </option>
                                         @endfor
                                     </select>
+                                    @error('periode_bulan')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
-                                {{-- Dropdown Tahun --}}
+
+                                {{-- Tahun --}}
                                 <div class="w-1/2">
                                     <select name="periode_tahun"
                                         class="bg-gray-50 border @error('periode_tahun') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -99,42 +102,50 @@
                                         @for ($i = date('Y') + 1; $i >= date('Y') - 5; $i--)
                                             <option value="{{ $i }}"
                                                 {{ old('periode_tahun', $tahunTagihan) == $i ? 'selected' : '' }}>
-                                                {{ $i }}</option>
+                                                {{ $i }}
+                                            </option>
                                         @endfor
                                     </select>
+                                    @error('periode_tahun')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
                                 </div>
                             </div>
+                            {{-- Error untuk kombinasi periode --}}
+                            @error('periode')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
 
                     {{-- Kolom Kanan --}}
                     <div class="space-y-6">
+                        {{-- Jumlah Tagihan --}}
                         <div>
-                            <label for="jumlah_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Jumlah
-                                Tagihan (Rp)</label>
+                            <label for="jumlah_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Jumlah Tagihan (Rp)</label>
                             <input type="number" id="jumlah_tagihan" name="jumlah_tagihan"
                                 value="{{ old('jumlah_tagihan', $tagihan->jumlah_tagihan) }}"
                                 class="bg-gray-50 border @error('jumlah_tagihan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                 required>
                             @error('jumlah_tagihan')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        {{-- Tanggal Jatuh Tempo --}}
                         <div>
-                            <label for="tgl_jatuh_tempo" class="block mb-2 text-sm font-medium text-gray-900">Tanggal
-                                Jatuh Tempo</label>
+                            <label for="tgl_jatuh_tempo" class="block mb-2 text-sm font-medium text-gray-900">Tanggal Jatuh Tempo</label>
                             <input type="date" id="tgl_jatuh_tempo" name="tgl_jatuh_tempo"
                                 value="{{ old('tgl_jatuh_tempo', $tagihan->tgl_jatuh_tempo) }}"
                                 class="bg-gray-50 border @error('tgl_jatuh_tempo') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                             @error('tgl_jatuh_tempo')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        {{-- Status Tagihan --}}
                         <div>
-                            <label for="status_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Status
-                                Tagihan</label>
+                            <label for="status_tagihan" class="block mb-2 text-sm font-medium text-gray-900">Status Tagihan</label>
                             <select id="status_tagihan" name="status_tagihan"
                                 class="bg-gray-50 border @error('status_tagihan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                 required>
@@ -149,7 +160,7 @@
                                     Telat</option>
                             </select>
                             @error('status_tagihan')
-                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
