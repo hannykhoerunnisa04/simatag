@@ -17,13 +17,13 @@
 
   <main class="md:ml-64 flex-1 p-6 md:p-8 lg:p-10 w-full">
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-4 border-b border-gray-300">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-800">
-            Data Pemutusan
-        </h1>
-        <div class="flex items-center gap-3">
-            <i class="fas fa-user-circle text-2xl md:text-3xl text-blue-600"></i>
-            <span class="text-gray-700 text-sm md:text-base">Admin</span>
-        </div>
+      <h1 class="text-3xl md:text-4xl font-bold text-gray-800">
+        Data Pemutusan
+      </h1>
+      <div class="flex items-center gap-3">
+        <i class="fas fa-user-circle text-2xl md:text-3xl text-blue-600"></i>
+        <span class="text-gray-700 text-sm md:text-base">Admin</span>
+      </div>
     </header>
 
     <!-- Tombol Aksi & Search -->
@@ -83,14 +83,30 @@
               </td>
               <td class="p-3 text-center">
                 <div class="flex items-center justify-center gap-3">
+                  <!-- Edit -->
                   <a href="{{ route('admin.pemutusan.edit', $item) }}"
-                     class="text-yellow-500 hover:text-yellow-700" title="Edit"><i class="fas fa-edit"></i></a>
+                     class="text-yellow-500 hover:text-yellow-700" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <!-- Delete -->
                   <form action="{{ route('admin.pemutusan.destroy', $item) }}" method="POST"
                         onsubmit="return confirm('Hapus data pemutusan {{ $item->id_pemutusan }}?');">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="text-red-500 hover:text-red-700" title="Hapus"><i class="fas fa-trash-alt"></i></button>
+                    <button type="submit" class="text-red-500 hover:text-red-700" title="Hapus">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
                   </form>
+                  <!-- Aktifkan Lagi -->
+                  @if(strtolower($item->status_pemutusan) == 'permanen')
+                    <form action="{{ route('admin.pemutusan.reaktivasi', $item->id_pemutusan) }}" method="POST"
+                          onsubmit="return confirm('Aktifkan kembali pelanggan {{ $item->pelanggan->nama_pelanggan }}?');">
+                      @csrf
+                      <button type="submit" class="text-green-600 hover:text-green-800" title="Aktifkan Lagi">
+                        <i class="fas fa-undo-alt"></i>
+                      </button>
+                    </form>
+                  @endif
                 </div>
               </td>
             </tr>

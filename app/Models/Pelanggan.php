@@ -50,15 +50,18 @@ class Pelanggan extends Model
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'id_pelanggan',
-        'id_pengguna',
-        'nama_pelanggan',
-        'alamat',
-        'no_hp',
-        'status_pelanggan',
-        'id_paket',
-    ];
+   protected $fillable = [
+    'id_pelanggan',
+    'id_pengguna',
+    'nama_pelanggan',
+    'alamat',
+    'no_hp',
+    'id_paket',
+    'status_pelanggan',
+    'pic',
+    'email_pic',
+];
+
 
     /**
      * Boot method untuk otomatis membuat UUID jika id_pelanggan kosong.

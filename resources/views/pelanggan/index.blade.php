@@ -19,7 +19,30 @@
     </style>
 </head>
 
-<body class="flex bg-gray-100 font-sans" x-data="{ showModal: false, pelangganId: null, showToast: false }">
+<body class="flex bg-gray-100 font-sans"
+    x-data="{
+        showModal: false,
+        pelangganId: null,
+        showToast: false,
+        detailModal: false,
+        pelangganDetail: {},
+        
+        fetchDetail(id) {
+            fetch(`/admin/pelanggan/${id}/detail`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Gagal memuat detail');
+                    return response.json();
+                })
+                .then(data => {
+                    this.pelangganDetail = data;
+                    this.detailModal = true;
+                })
+                .catch(error => {
+                    alert('Gagal memuat detail pelanggan');
+                    console.error(error);
+                });
+        }
+    }">
     @include('components.sidebar.admin-sidebar')
 
     <main class="md:ml-64 flex-1 p-6">
@@ -84,12 +107,18 @@
                                 @endif
                             </td>
                             <td class="p-3 text-center">
-                                <div class="flex justify-center gap-4">
+                                <div class="flex justify-center gap-3">
+                                    {{-- Tombol Lihat Detail --}}
+                                    <button @click="fetchDetail('{{ $pelanggan->id_pelanggan }}')"
+                                        class="text-blue-500 hover:text-blue-700" title="Lihat Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {{-- Tombol Edit --}}
                                     <a href="{{ route('admin.pelanggan.edit', $pelanggan) }}"
                                         class="text-yellow-500 hover:text-yellow-700" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    {{-- Tombol Hapus Trigger Modal --}}
+                                    {{-- Tombol Hapus --}}
                                     <button @click="showModal = true; pelangganId = '{{ $pelanggan->id_pelanggan }}'"
                                         class="text-red-500 hover:text-red-700" title="Hapus">
                                         <i class="fas fa-trash-alt"></i>
@@ -111,15 +140,10 @@
 
     {{-- Modal Hapus --}}
     <div x-show="showModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-        x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0">
+        x-transition>
         <div class="bg-white rounded-lg p-6 w-full max-w-sm">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Konfirmasi Hapus</h2>
-            <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus pelanggan ini? Tindakan ini tidak bisa dibatalkan.</p>
+            <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus pelanggan ini?</p>
             <div class="flex justify-end gap-2">
                 <button @click="showModal = false"
                     class="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Batal</button>
@@ -129,6 +153,28 @@
                     <button type="submit"
                         class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Hapus</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Modal Detail --}}
+    <div x-show="detailModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+        x-transition>
+        <div class="bg-white rounded-lg p-6 w-full max-w-lg">
+            <h2 class="text-lg font-semibold mb-4">Detail Pelanggan</h2>
+            <p><strong>ID:</strong> <span x-text="pelangganDetail.id_pelanggan"></span></p>
+            <p><strong>Nama:</strong> <span x-text="pelangganDetail.nama_pelanggan"></span></p>
+            <p><strong>Alamat:</strong> <span x-text="pelangganDetail.alamat"></span></p>
+            <p><strong>No. HP:</strong> <span x-text="pelangganDetail.no_hp"></span></p>
+            <p><strong>Paket:</strong> 
+            <span x-text="pelangganDetail.paket?.nama_paket ?? 'Tidak ada data paket'"></span>
+            </p>
+            <p><strong>PIC:</strong> <span x-text="pelangganDetail.pic ?? 'Belum Ada'"></span></p>
+            <p><strong>Email PIC:</strong> <span x-text="pelangganDetail.email_pic ?? 'Belum Ada'"></span></p>
+            <p><strong>Status:</strong> <span x-text="pelangganDetail.status_pelanggan"></span></p>
+            <div class="flex justify-end mt-4">
+                <button @click="detailModal = false"
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Tutup</button>
             </div>
         </div>
     </div>

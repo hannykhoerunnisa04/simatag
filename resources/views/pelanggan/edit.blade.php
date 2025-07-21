@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edit Data Pelanggan</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" xintegrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     body { background-color: #f0f4f8; }
   </style>
@@ -51,7 +51,6 @@
           <div class="space-y-6">
             <div>
               <label for="id_pelanggan" class="block mb-2 text-sm font-medium text-gray-900">ID Pelanggan</label>
-              {{-- Dibuat readonly karena ID tidak seharusnya diubah --}}
               <input type="text" id="id_pelanggan" name="id_pelanggan" value="{{ $pelanggan->id_pelanggan }}" class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" readonly>
             </div>
 
@@ -87,7 +86,6 @@
               <select id="id_paket" name="id_paket" class="bg-gray-50 border @error('id_paket') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg block w-full p-2.5" required>
                   <option value="" disabled>-- Pilih Paket Layanan --</option>
                   @foreach($paketLayanans as $paket)
-                      {{-- Menandai paket yang sedang digunakan oleh pelanggan --}}
                       <option value="{{ $paket->id_paket }}" {{ old('id_paket', $pelanggan->id_paket) == $paket->id_paket ? 'selected' : '' }}>
                           {{ $paket->nama_paket }}
                       </option>
@@ -101,11 +99,26 @@
             <div>
               <label for="status_pelanggan" class="block mb-2 text-sm font-medium text-gray-900">Status Pelanggan</label>
               <select id="status_pelanggan" name="status_pelanggan" class="bg-gray-50 border @error('status_pelanggan') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg block w-full p-2.5" required>
-                {{-- Menandai status yang sedang dimiliki oleh pelanggan --}}
                 <option value="aktif" {{ old('status_pelanggan', $pelanggan->status_pelanggan) == 'aktif' ? 'selected' : '' }}>Aktif</option>
                 <option value="tidak aktif" {{ old('status_pelanggan', $pelanggan->status_pelanggan) == 'tidak aktif' ? 'selected' : '' }}>Tidak Aktif</option>
               </select>
               @error('status_pelanggan')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div>
+              <label for="pic" class="block mb-2 text-sm font-medium text-gray-900">PIC</label>
+              <input type="text" id="pic" name="pic" value="{{ old('pic', $pelanggan->pic) }}" class="bg-gray-50 border @error('pic') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Nama PIC">
+              @error('pic')
+                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div>
+              <label for="email_pic" class="block mb-2 text-sm font-medium text-gray-900">Email PIC</label>
+              <input type="email" id="email_pic" name="email_pic" value="{{ old('email_pic', $pelanggan->email_pic) }}" class="bg-gray-50 border @error('email_pic') border-red-500 @else border-gray-300 @enderror text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Email PIC">
+              @error('email_pic')
                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
               @enderror
             </div>
@@ -114,7 +127,7 @@
 
         {{-- Tombol Aksi --}}
         <div class="mt-8 flex justify-end gap-4">
-          <a href="{{ route('admin.pelanggan.index') }}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700">
+          <a href="{{ route('admin.pelanggan.index') }}" class="py-2.5 px-5 text-sm font-medium bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700">
             Batal
           </a>
           <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">

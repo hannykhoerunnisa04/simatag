@@ -13,9 +13,9 @@ class PelangganController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Pelanggan::with('paket'); // Eager load relasi paket untuk menampilkan nama paket
+        $query = Pelanggan::with('paket'); // Eager load relasi paket
 
-        // Logika untuk pencarian
+        // Pencarian berdasarkan nama atau ID
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
@@ -23,17 +23,38 @@ class PelangganController extends Controller
                   ->orWhere('id_pelanggan', 'like', "%{$search}%");
             });
         }
-        
-        // Logika untuk filter status (jika diperlukan)
+
+        // Filter status jika ada
         if ($request->filled('status')) {
             $query->where('status_pelanggan', $request->status);
         }
 
-        // Mengurutkan berdasarkan nama pelanggan dan melakukan paginasi
-$pelanggans = $query->orderBy('nama_pelanggan', 'asc')->paginate(10);
+        // Urutkan dan paginasi
+        $pelanggans = $query->orderBy('nama_pelanggan', 'asc')->paginate(10);
 
-        // Mengirim data ke view
         return view('roleatasan.datapelanggan.index', compact('pelanggans'));
     }
 
+    /**
+     * Mengambil detail data pelanggan.
+     */
+    public function detail($id)
+    {
+        $pelanggan = Pelanggan::with('paket')->find($id);
+
+        if (!$pelanggan) {
+            return response()->json(['message' => 'Pelanggan tidak ditemukan'], 404);
+        }
+
+        return response()->json([
+            'id_pelanggan'      => $pelanggan->id_pelanggan,
+            'nama_pelanggan'    => $pelanggan->nama_pelanggan,
+            'alamat'            => $pelanggan->alamat,
+            'no_hp'             => $pelanggan->no_hp,
+            'status_pelanggan'  => $pelanggan->status_pelanggan,
+            'paket'             => $pelanggan->paket,
+            'pic'               => $pelanggan->pic ?? 'Tidak ada PIC',
+            'email'             => $pelanggan->email_pic ?? 'Tidak ada Email PIC',
+        ]);
+    }
 }

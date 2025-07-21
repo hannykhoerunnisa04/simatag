@@ -156,4 +156,30 @@ class PemutusanController extends Controller
                              ->with('error', 'Gagal menghapus data pemutusan. Error: ' . $e->getMessage());
         }
     }
+    public function reaktivasi($id)
+    {
+    DB::beginTransaction();
+    try {
+        $pemutusan = Pemutusan::findOrFail($id);
+
+        // Update status pelanggan ke AKTIF
+        $pelanggan = $pemutusan->pelanggan;
+        if ($pelanggan) {
+            $pelanggan->status_pelanggan = 'aktif';
+            $pelanggan->save();
+        }
+
+        // Hapus data pemutusan (anggap sudah tidak berlaku)
+        $pemutusan->delete();
+
+        DB::commit();
+        return redirect()->route('admin.pemutusan.index')
+                         ->with('success', 'Pelanggan berhasil diaktifkan kembali.');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->route('admin.pemutusan.index')
+                         ->with('error', 'Gagal mengaktifkan kembali pelanggan. Error: ' . $e->getMessage());
+    }
+    }
 }

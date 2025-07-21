@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tambah Pelanggan Baru</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" xintegrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style> body { background-color: #f0f4f8; } </style>
 </head>
 
@@ -37,11 +37,9 @@
           <div class="space-y-6">
             <div>
               <label for="id_pengguna" class="block mb-2 text-sm font-medium text-gray-900">Pilih Pengguna</label>
-              {{-- Pastikan ID elemen adalah 'id_pengguna' dan memanggil 'updateFields()' --}}
               <select id="id_pengguna" name="id_pengguna" onchange="updateFields()" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5" required>
                   <option value="" data-nama="" disabled selected>-- Pilih Pengguna --</option>
                   @foreach($calonPelanggan as $pengguna)
-                      {{-- Pastikan data-nama ada di sini --}}
                       <option value="{{ $pengguna->id_pengguna }}" 
                               data-nama="{{ $pengguna->nama }}" 
                               {{ old('id_pengguna') == $pengguna->id_pengguna ? 'selected' : '' }}>
@@ -53,16 +51,14 @@
 
             <div>
                 <label for="id_pelanggan" class="block mb-2 text-sm font-medium text-gray-900">ID Pelanggan</label>
-                {{-- Pastikan ID elemen adalah 'id_pelanggan' --}}
-                <input type="text" id="id_pelanggan" name="id_pelanggan" value="{{ old('id_pelanggan') }}" class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 rounded-lg p-2.5" placeholder="ID Pelanggan akan terisi otomatis" required readonly>
+                <input type="text" id="id_pelanggan" name="id_pelanggan" value="{{ old('id_pelanggan') }}" class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 rounded-lg p-2.5" placeholder="ID Pelanggan otomatis" readonly required>
             </div>
 
             <div>
                 <label for="nama_pelanggan" class="block mb-2 text-sm font-medium text-gray-900">Nama Pelanggan</label>
-                {{-- Pastikan ID elemen adalah 'nama_pelanggan' --}}
-                <input type="text" id="nama_pelanggan" name="nama_pelanggan" value="{{ old('nama_pelanggan') }}" class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 rounded-lg p-2.5" placeholder="Nama akan terisi otomatis" required readonly>
+                <input type="text" id="nama_pelanggan" name="nama_pelanggan" value="{{ old('nama_pelanggan') }}" class="bg-gray-200 cursor-not-allowed border border-gray-300 text-gray-900 rounded-lg p-2.5" placeholder="Nama otomatis" readonly required>
             </div>
-            
+
             <div>
                 <label for="alamat" class="block mb-2 text-sm font-medium text-gray-900">Alamat</label>
                 <textarea id="alamat" name="alamat" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg block w-full p-2.5" required>{{ old('alamat') }}</textarea>
@@ -95,6 +91,16 @@
                 <option value="tidak aktif" {{ old('status_pelanggan') == 'tidak aktif' ? 'selected' : '' }}>Tidak Aktif</option>
               </select>
             </div>
+
+            <div>
+              <label for="pic" class="block mb-2 text-sm font-medium text-gray-900">PIC</label>
+              <input type="text" id="pic" name="pic" value="{{ old('pic') }}" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5" placeholder="Nama PIC">
+            </div>
+
+            <div>
+              <label for="email_pic" class="block mb-2 text-sm font-medium text-gray-900">Email PIC</label>
+              <input type="email" id="email_pic" name="email_pic" value="{{ old('email_pic') }}" class="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg p-2.5" placeholder="Email PIC">
+            </div>
           </div>
         </div>
 
@@ -108,13 +114,11 @@
   
   <script>
     function updateFields() {
-      // Pastikan semua ID elemen sudah benar
       const selectElement = document.getElementById('id_pengguna');
       const namaPelangganInput = document.getElementById('nama_pelanggan');
       const idPelangganInput = document.getElementById('id_pelanggan');
       
       const selectedOption = selectElement.options[selectElement.selectedIndex];
-      
       const nama = selectedOption.getAttribute('data-nama');
       const idPengguna = selectedOption.value;
 
@@ -128,7 +132,6 @@
       }
     }
 
-    // Panggil fungsi saat halaman dimuat
     document.addEventListener('DOMContentLoaded', function() {
       if (document.getElementById('id_pengguna').value) {
         updateFields();

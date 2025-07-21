@@ -164,7 +164,7 @@ class TagihanController extends Controller
         ];
         $periode = $bulanIndonesia[$validatedData['periode_bulan']] . ' ' . $validatedData['periode_tahun'];
 
-        // ✅ Cek duplikat (kecuali dirinya sendiri)
+        // Cek duplikat (kecuali dirinya sendiri)
         $duplicate = Tagihan::where('id_pelanggan', $validatedData['id_pelanggan'])
             ->where('periode', $periode)
             ->where('id_tagihan', '!=', $tagihan->id_tagihan)
@@ -197,4 +197,77 @@ class TagihanController extends Controller
 
         return redirect()->route('admin.tagihan.index')->with('success', 'Data tagihan berhasil dihapus.');
     }
+    public function generate()
+    {
+    try {
+        // Ambil bulan & tahun sekarang
+        $bulanSekarang = now()->format('m'); // Contoh: 07
+        $tahunSekarang = now()->format('Y'); // Contoh: 2025
+
+        // Daftar nama bulan Indonesia
+        $bulanIndonesia = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
+        // Periode: "Juli 2025"
+        $periode = $bulanIndonesia[intval($bulanSekarang)] . ' ' . $tahunSekarang;
+
+        // Ambil semua pelanggan dengan relasi paket
+        $pelanggans = Pelanggan::with('paket')->get();
+
+        $jumlahTagihanBaru = 0;
+
+        foreach ($pelanggans as $pelanggan) {
+            // Skip jika pelanggan tidak punya paket
+            if (!$pelanggan->paket) {
+                continue;
+            }
+
+            // Cek jika tagihan periode ini sudah ada
+            $sudahAda = Tagihan::where('id_pelanggan', $pelanggan->id_pelanggan)
+                ->where('periode', $periode)
+                ->exists();
+
+            if (!$sudahAda) {
+                // Hitung jumlah tagihan dari harga paket
+                $jumlahTagihan = $pelanggan->paket->harga ?? 0;
+
+                // Cari ID tagihan terakhir & buat ID baru
+                $lastNumber = Tagihan::selectRaw('MAX(CAST(SUBSTRING(id_tagihan, 5) AS UNSIGNED)) as max_number')
+                                     ->value('max_number') ?? 0;
+
+                $nextIdTagihan = 'TGH-' . str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+
+                // Simpan tagihan baru
+                Tagihan::create([
+                    'id_tagihan'     => $nextIdTagihan,
+                    'id_pelanggan'   => $pelanggan->id_pelanggan,
+                    'periode'        => $periode,
+                    'jumlah_tagihan' => $jumlahTagihan,
+                    'tgl_jatuh_tempo'=> now()->addDays(10)->format('Y-m-d'),
+                    'status_tagihan' => 'belum',
+                ]);
+
+                $jumlahTagihanBaru++;
+            }
+        }
+
+        // Redirect dengan pesan
+        if ($jumlahTagihanBaru > 0) {
+            return redirect()->route('admin.tagihan.index')
+                ->with('success', $jumlahTagihanBaru . ' tagihan berhasil digenerate untuk periode ' . $periode . '.');
+        } else {
+            return redirect()->route('admin.tagihan.index')
+                ->with('info', 'Semua pelanggan sudah memiliki tagihan untuk periode ' . $periode . '. Tidak ada tagihan baru yang dibuat.');
+        }
+
+    } catch (\Exception $e) {
+        // Tangkap error dan tampilkan
+        return redirect()->route('admin.tagihan.index')
+            ->with('error', 'Gagal generate tagihan: ' . $e->getMessage());
+    }
+    }
+
 }

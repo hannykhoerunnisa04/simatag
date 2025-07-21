@@ -13,6 +13,7 @@
         body {
             background-color: #f0f4f8;
         }
+
         [x-cloak] {
             display: none !important;
         }
@@ -35,10 +36,25 @@
 
         <!-- Tombol Aksi & Search -->
         <div class="bg-white shadow-md rounded-lg p-4 flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-            <a href="{{ route('admin.tagihan.create') }}"
-                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow hover:shadow-lg transition">
-                <i class="fas fa-plus-circle"></i> Tambah Tagihan
-            </a>
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <!-- Tombol Tambah Tagihan -->
+                <a href="{{ route('admin.tagihan.create') }}"
+                    class="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg shadow hover:shadow-lg transition">
+                    <i class="fas fa-plus-circle"></i> Tambah Tagihan
+                </a>
+
+                <!-- Tombol Generate Tagihan Otomatis -->
+                <form action="{{ route('admin.tagihan.generate') }}" method="POST">
+                    @csrf
+                    <button type="submit"
+                        onclick="return confirm('Yakin ingin generate tagihan otomatis untuk semua pelanggan?')"
+                        class="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg shadow hover:shadow-lg transition">
+                        <i class="fas fa-sync-alt"></i> Generate Tagihan
+                    </button>
+                </form>
+            </div>
+
+            <!-- Search -->
             <form action="{{ route('admin.tagihan.index') }}" method="GET" class="flex items-center gap-2 w-full sm:w-auto">
                 <input type="text" name="search" placeholder="Cari ID, nama, atau periode..."
                     value="{{ request('search') }}"

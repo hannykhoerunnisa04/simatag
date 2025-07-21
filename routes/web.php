@@ -68,11 +68,20 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('pemutusan', PemutusanController::class);
     Route::resource('rekapkeuangan', RekapKeuanganController::class);
 
-    // ✅ Rute kustom untuk reset password pengguna
+    // Rute kustom untuk reset password pengguna
     Route::post('/pengguna/{pengguna}/reset-password', [PenggunaController::class, 'resetPassword'])->name('pengguna.resetPassword');
 
     // Rute kustom lainnya
     Route::post('/validasibukti/{id_bukti}/validate', [ValidasiBuktiController::class, 'validatePayment'])->name('validasibukti.validate');
+
+    // Rute untuk Generate Tagihan Otomatis
+    Route::post('/tagihan/generate', [AdminTagihanController::class, 'generate'])->name('tagihan.generate');
+
+    Route::post('/pemutusan/{id}/reaktivasi', [PemutusanController::class, 'reaktivasi'])->name('pemutusan.reaktivasi');
+
+    Route::get('/pelanggan/{id}/detail', [PelangganController::class, 'showDetail'])->name('pelanggan.detail');
+
+
 });
 
 
@@ -105,6 +114,9 @@ Route::middleware(['auth', 'role:atasan'])->prefix('atasan')->name('atasan.')->g
     Route::get('/rekapkeuangan', [AtasanRekapKeuanganController::class, 'index'])->name('rekapkeuangan.index');
     Route::get('/datapelanggan', [AtasanPelangganController::class, 'index'])->name('datapelanggan.index');
     Route::get('/datatagihan', [AtasanTagihanController::class, 'index'])->name('datatagihan.index');
+
+    Route::get('/pelanggan/{id}/detail', [App\Http\Controllers\Atasan\PelangganController::class, 'detail'])->name('datapelanggan.detail');
+
 
 });
 
